@@ -23,7 +23,7 @@
 
 ## 使用说明
 
-```go get https://github.com/moremorefun/mcommon```
+```go get github.com/moremorefun/mcommon```
    
 ## 维护者
 
