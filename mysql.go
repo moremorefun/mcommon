@@ -13,7 +13,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// DbExeAble 数据操作接口
+// DbExeAble 数据库接口
 type DbExeAble interface {
 	Rebind(string) string
 	Get(dest interface{}, query string, args ...interface{}) error
@@ -24,9 +24,10 @@ type DbExeAble interface {
 	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 }
 
+// isShowSQL 是否显示执行的sql语句
 var isShowSQL bool
 
-// DbCreate 创建数据库
+// DbCreate 创建数据库链接
 func DbCreate(dataSourceName string, showSQL bool) *sqlx.DB {
 	isShowSQL = showSQL
 
@@ -52,7 +53,7 @@ func DbCreate(dataSourceName string, showSQL bool) *sqlx.DB {
 	return db
 }
 
-// DbExecuteCountManyContent 返回执行个数
+// DbExecuteCountManyContent 返回sql语句并返回执行行数
 func DbExecuteCountManyContent(ctx context.Context, tx DbExeAble, query string, n int, args ...interface{}) (int64, error) {
 	var err error
 	insertArgs := strings.Repeat("(?),", n)
@@ -90,7 +91,7 @@ func DbExecuteCountManyContent(ctx context.Context, tx DbExeAble, query string, 
 	return count, nil
 }
 
-// DbExecuteLastIDNamedContent 执行并返回lastID
+// DbExecuteLastIDNamedContent 执行sql语句并返回lastID
 func DbExecuteLastIDNamedContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) (int64, error) {
 	query, args, err := sqlx.Named(query, argMap)
 	if err != nil {
@@ -128,7 +129,7 @@ func DbExecuteLastIDNamedContent(ctx context.Context, tx DbExeAble, query string
 	return lastID, nil
 }
 
-// DbExecuteCountNamedContent 返回执行个数
+// DbExecuteCountNamedContent 执行sql语句返回执行个数
 func DbExecuteCountNamedContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) (int64, error) {
 	query, args, err := sqlx.Named(query, argMap)
 	if err != nil {
@@ -166,7 +167,7 @@ func DbExecuteCountNamedContent(ctx context.Context, tx DbExeAble, query string,
 	return count, nil
 }
 
-// DbGetNamedContent 返回单个元素
+// DbGetNamedContent 执行sql查询并返回当个元素
 func DbGetNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, query string, argMap map[string]interface{}) (bool, error) {
 	query, args, err := sqlx.Named(query, argMap)
 	if err != nil {
@@ -206,7 +207,7 @@ func DbGetNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, quer
 	return true, nil
 }
 
-// DbSelectNamedContent 返回列表
+// DbSelectNamedContent 执行sql查询并返回多行
 func DbSelectNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, query string, argMap map[string]interface{}) error {
 	query, args, err := sqlx.Named(query, argMap)
 	if err != nil {

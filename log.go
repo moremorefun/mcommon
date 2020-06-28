@@ -8,11 +8,16 @@ import (
 	"go.uber.org/zap"
 )
 
-// Log 日志对象
+// Log 对外服务的日志对象
 var Log LoggerAble
+
+// ZapLog zap日志对象
 var ZapLog *zap.Logger
+
+// conf zap日志配置
 var conf zap.Config
 
+// LoggerAble 日志对象接口
 type LoggerAble interface {
 	Debugf(template string, args ...interface{})
 	Infof(template string, args ...interface{})
