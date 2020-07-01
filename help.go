@@ -42,14 +42,15 @@ func IsIntInSlice(arr []int64, str int64) bool {
 }
 
 // 可重复读的body
-func GinRepeatReadBody(c *gin.Context, err error) {
+func GinRepeatReadBody(c *gin.Context) {
 	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
 	_ = c.Request.Body.Close() //  must close
 	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 }
 
 // GinFillBindError 检测gin输入绑定错误
-func GinFillBindError(c *gin.Context, err error) {
+func GinFillBindError(c *gin.Context) {
+	var err error
 	validatorError, ok := err.(validator.ValidationErrors)
 	if ok {
 		errMsgList := make([]string, 0, 16)
