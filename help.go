@@ -1,9 +1,11 @@
 package mcommon
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -37,6 +39,13 @@ func IsIntInSlice(arr []int64, str int64) bool {
 		}
 	}
 	return false
+}
+
+// 可重复读的body
+func GinRepeatReadBody(c *gin.Context, err error) {
+	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
+	_ = c.Request.Body.Close() //  must close
+	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 }
 
 // GinFillBindError 检测gin输入绑定错误
