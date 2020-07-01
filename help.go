@@ -63,6 +63,15 @@ func GinRepeatReadBody(c *gin.Context) error {
 	return nil
 }
 
+// GinShouldBindRepeat 可重复绑定参数
+func GinShouldBindRepeat(c *gin.Context, obj interface{}) error {
+	err := GinRepeatReadBody(c)
+	if err != nil {
+		return err
+	}
+	return c.ShouldBind(obj)
+}
+
 // GinFillBindError 检测gin输入绑定错误
 func GinFillBindError(c *gin.Context) {
 	var err error
