@@ -73,8 +73,7 @@ func GinShouldBindRepeat(c *gin.Context, obj interface{}) error {
 }
 
 // GinFillBindError 检测gin输入绑定错误
-func GinFillBindError(c *gin.Context) {
-	var err error
+func GinFillBindError(c *gin.Context, err error) {
 	validatorError, ok := err.(validator.ValidationErrors)
 	if ok {
 		errMsgList := make([]string, 0, 16)
