@@ -15,6 +15,12 @@ import (
 	"gopkg.in/go-playground/validator.v8"
 )
 
+type GinResp struct {
+	ErrCode int64  `json:"error"`
+	ErrMsg  string `json:"error_msg"`
+	Data    gin.H  `json:"data,omitempty"`
+}
+
 // GetUUIDStr 获取唯一字符串
 func GetUUIDStr() string {
 	u1 := uuid.NewV4()
@@ -82,9 +88,10 @@ func GinFillBindError(c *gin.Context, err error) {
 		}
 		c.JSON(
 			http.StatusOK,
-			gin.H{
-				"error":   ErrorBind,
-				"err_msg": strings.Join(errMsgList, ", "),
+			GinResp{
+				ErrCode: ErrorBind,
+				ErrMsg:  strings.Join(errMsgList, ", "),
+				Data:    nil,
 			},
 		)
 		return
@@ -93,9 +100,9 @@ func GinFillBindError(c *gin.Context, err error) {
 	if ok {
 		c.JSON(
 			http.StatusOK,
-			gin.H{
-				"error":   ErrorBind,
-				"err_msg": fmt.Sprintf("[%s] type error", unmarshalError.Field),
+			GinResp{
+				ErrCode: ErrorBind,
+				ErrMsg:  fmt.Sprintf("[%s] type error", unmarshalError.Field),
 			},
 		)
 		return
@@ -103,18 +110,18 @@ func GinFillBindError(c *gin.Context, err error) {
 	if err == io.EOF {
 		c.JSON(
 			http.StatusOK,
-			gin.H{
-				"error":   ErrorBind,
-				"err_msg": fmt.Sprintf("empty body"),
+			GinResp{
+				ErrCode: ErrorBind,
+				ErrMsg:  fmt.Sprintf("empty body"),
 			},
 		)
 		return
 	}
 	c.JSON(
 		http.StatusOK,
-		gin.H{
-			"error":   ErrorInternal,
-			"err_msg": ErrorInternalMsg,
+		GinResp{
+			ErrCode: ErrorInternal,
+			ErrMsg:  ErrorInternalMsg,
 		},
 	)
 }

@@ -2,7 +2,7 @@ package mcommon
 
 const (
 	// ErrorSuccess 成功
-	ErrorSuccess = 200
+	ErrorSuccess = 0
 	// ErrorSuccessMsg 成功
 	ErrorSuccessMsg = "success"
 
