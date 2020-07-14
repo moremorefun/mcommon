@@ -8,6 +8,7 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/myesui/uuid v1.0.0 // indirect
+	github.com/tencentcloud/tencentcloud-sdk-go v3.0.211+incompatible
 	github.com/twinj/uuid v1.0.0
 	go.uber.org/zap v1.15.0
 	google.golang.org/appengine v1.6.6 // indirect
