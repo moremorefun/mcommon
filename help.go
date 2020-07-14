@@ -146,3 +146,29 @@ func GinFillSuccessData(data gin.H) GinResp {
 		Data:    data,
 	}
 }
+
+// GinDoRespSuccess 返回成功信息
+func GinDoRespSuccess(c *gin.Context, data gin.H) {
+	c.JSON(http.StatusOK, GinResp{
+		ErrCode: ErrorSuccess,
+		ErrMsg:  ErrorSuccessMsg,
+		Data:    data,
+	})
+}
+
+// 返回错误信息
+func GinDoRespInternalErr(c *gin.Context) {
+	c.JSON(http.StatusOK, GinResp{
+		ErrCode: ErrorInternal,
+		ErrMsg:  ErrorInternalMsg,
+	})
+}
+
+// GinDoRespErr 返回特殊错误
+func GinDoRespErr(c *gin.Context, code int64, msg string, data gin.H) {
+	c.JSON(http.StatusOK, GinResp{
+		ErrCode: code,
+		ErrMsg:  msg,
+		Data:    data,
+	})
+}
