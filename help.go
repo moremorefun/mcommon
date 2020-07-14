@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iancoleman/strcase"
+	"github.com/speps/go-hashids"
 	"github.com/twinj/uuid"
 	"gopkg.in/go-playground/validator.v8"
 )
@@ -57,6 +58,41 @@ func IsIntInSlice(arr []int64, str int64) bool {
 		}
 	}
 	return false
+}
+
+// EncodeHashID 获取hash id
+func EncodeHashID(salt string, minLen, id int) (string, error) {
+	hd := hashids.NewData()
+	hd.Salt = salt
+	hd.MinLength = minLen
+	h, err := hashids.NewWithData(hd)
+	if err != nil {
+		return "", err
+	}
+	e, err := h.Encode([]int{id})
+	if err != nil {
+		return "", err
+	}
+	return e, nil
+}
+
+// DecodeHashID 解析hash id
+func DecodeHashID(salt string, minLen int, value string) (int, error) {
+	hd := hashids.NewData()
+	hd.Salt = salt
+	hd.MinLength = minLen
+	h, err := hashids.NewWithData(hd)
+	if err != nil {
+		return 0, err
+	}
+	e, err := h.DecodeWithError(value)
+	if err != nil {
+		return 0, err
+	}
+	if len(e) > 0 {
+		return 0, fmt.Errorf("error value: %s", value)
+	}
+	return e[0], nil
 }
 
 // GinRepeatReadBody 创建可重复度body
