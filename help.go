@@ -137,3 +137,12 @@ func GinFillBindError(c *gin.Context, err error) {
 		},
 	)
 }
+
+// GinFillSuccessData 填充返回数据
+func GinFillSuccessData(data gin.H) GinResp {
+	return GinResp{
+		ErrCode: ErrorSuccess,
+		ErrMsg:  ErrorSuccessMsg,
+		Data:    data,
+	}
+}
