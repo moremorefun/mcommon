@@ -21,6 +21,18 @@ type GinResp struct {
 	Data    gin.H  `json:"data,omitempty"`
 }
 
+// GinRespSuccess 成功返回
+var GinRespSuccess = GinResp{
+	ErrCode: ErrorSuccess,
+	ErrMsg:  ErrorSuccessMsg,
+}
+
+// GinRespInternalErr 成功返回
+var GinRespInternalErr = GinResp{
+	ErrCode: ErrorInternal,
+	ErrMsg:  ErrorInternalMsg,
+}
+
 // GetUUIDStr 获取唯一字符串
 func GetUUIDStr() string {
 	u1 := uuid.NewV4()
