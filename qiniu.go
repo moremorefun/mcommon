@@ -49,3 +49,12 @@ GotoUpload:
 	}
 	return nil
 }
+
+// QiniuGetDownloadURL 获取私有下载链接
+func QiniuGetDownloadURL(ctx context.Context, access string, secret string, domain string, fileKey string, deadline int64) string {
+	mac := qbox.NewMac(access, secret)
+
+	// 私有空间访问
+	privateAccessURL := storage.MakePrivateURL(mac, domain, fileKey, deadline)
+	return privateAccessURL
+}
