@@ -8,7 +8,8 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/myesui/uuid v1.0.0 // indirect
-	github.com/qiniu/api.v7 v7.2.5+incompatible
+	github.com/qiniu/api.v7 v7.2.5+incompatible // indirect
+	github.com/qiniu/x v1.11.0 // indirect
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/tencentcloud/tencentcloud-sdk-go v3.0.211+incompatible
 	github.com/twinj/uuid v1.0.0
