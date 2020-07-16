@@ -11,8 +11,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iancoleman/strcase"
+	uuid "github.com/satori/go.uuid"
 	"github.com/speps/go-hashids"
-	"github.com/twinj/uuid"
 	"gopkg.in/go-playground/validator.v8"
 )
 
