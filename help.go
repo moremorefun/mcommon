@@ -95,6 +95,38 @@ func DecodeHashID(salt string, minLen int, value string) (int, error) {
 	return e[0], nil
 }
 
+// EncodeHashIDs 获取hash id
+func EncodeHashIDs(salt string, minLen int, ids []int) (string, error) {
+	hd := hashids.NewData()
+	hd.Salt = salt
+	hd.MinLength = minLen
+	h, err := hashids.NewWithData(hd)
+	if err != nil {
+		return "", err
+	}
+	e, err := h.Encode(ids)
+	if err != nil {
+		return "", err
+	}
+	return e, nil
+}
+
+// DecodeHashIDs 解析hash id
+func DecodeHashIDs(salt string, minLen int, value string) ([]int, error) {
+	hd := hashids.NewData()
+	hd.Salt = salt
+	hd.MinLength = minLen
+	h, err := hashids.NewWithData(hd)
+	if err != nil {
+		return nil, err
+	}
+	e, err := h.DecodeWithError(value)
+	if err != nil {
+		return nil, err
+	}
+	return e, nil
+}
+
 // GinRepeatReadBody 创建可重复度body
 func GinRepeatReadBody(c *gin.Context) error {
 	var err error
