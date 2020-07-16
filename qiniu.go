@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/qiniu/api.v7/auth/qbox"
-	"github.com/qiniu/api.v7/storage"
+	"github.com/qiniu/api.v7/v7/auth/qbox"
+	"github.com/qiniu/api.v7/v7/storage"
 )
 
 // UploadToQiniu 上传到qiniu
