@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -125,6 +126,18 @@ func DecodeHashIDs(salt string, minLen int, value string) ([]int, error) {
 		return nil, err
 	}
 	return e, nil
+}
+
+// IntArrToString 数组转换
+func IntArrToString(A []int, delim string) string {
+	var buffer bytes.Buffer
+	for i := 0; i < len(A); i++ {
+		buffer.WriteString(strconv.Itoa(A[i]))
+		if i != len(A)-1 {
+			buffer.WriteString(delim)
+		}
+	}
+	return buffer.String()
 }
 
 // GinRepeatReadBody 创建可重复度body
