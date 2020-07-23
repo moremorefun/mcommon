@@ -2,19 +2,15 @@ package mcommon
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/iancoleman/strcase"
 	uuid "github.com/satori/go.uuid"
 	"github.com/speps/go-hashids"
-	"gopkg.in/go-playground/validator.v8"
 )
 
 type GinResp struct {
@@ -173,49 +169,11 @@ func GinShouldBindRepeat(c *gin.Context, obj interface{}) error {
 
 // GinFillBindError 检测gin输入绑定错误
 func GinFillBindError(c *gin.Context, err error) {
-	validatorError, ok := err.(validator.ValidationErrors)
-	if ok {
-		errMsgList := make([]string, 0, 16)
-		for _, v := range validatorError {
-			errMsgList = append(errMsgList, fmt.Sprintf("[%s] is %s", strcase.ToSnake(v.Field), v.ActualTag))
-		}
-		c.JSON(
-			http.StatusOK,
-			GinResp{
-				ErrCode: ErrorBind,
-				ErrMsg:  strings.Join(errMsgList, ", "),
-				Data:    nil,
-			},
-		)
-		return
-	}
-	unmarshalError, ok := err.(*json.UnmarshalTypeError)
-	if ok {
-		c.JSON(
-			http.StatusOK,
-			GinResp{
-				ErrCode: ErrorBind,
-				ErrMsg:  fmt.Sprintf("[%s] type error", unmarshalError.Field),
-			},
-		)
-		return
-	}
-	if err == io.EOF {
-		c.JSON(
-			http.StatusOK,
-			GinResp{
-				ErrCode: ErrorBind,
-				ErrMsg:  fmt.Sprintf("empty body"),
-			},
-		)
-		return
-	}
-	c.JSON(
-		http.StatusOK,
-		GinResp{
-			ErrCode: ErrorInternal,
-			ErrMsg:  ErrorInternalMsg,
-		},
+	GinDoRespErr(
+		c,
+		ErrorBind,
+		fmt.Sprintf("[%T] %s", err, err.Error()),
+		nil,
 	)
 }
 
