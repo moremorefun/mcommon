@@ -2,8 +2,11 @@ package mcommon
 
 import (
 	"bytes"
+	"encoding/binary"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -134,6 +137,16 @@ func IntArrToString(A []int64, delim string) string {
 		}
 	}
 	return buffer.String()
+}
+
+// Ip2long 转换ip
+func Ip2long(ipAddr string) (uint32, error) {
+	ip := net.ParseIP(ipAddr)
+	if ip == nil {
+		return 0, errors.New("wrong ipAddr format")
+	}
+	ip = ip.To4()
+	return binary.BigEndian.Uint32(ip), nil
 }
 
 // GinRepeatReadBody 创建可重复度body
