@@ -16,6 +16,8 @@ import (
 	"github.com/speps/go-hashids"
 )
 
+type H map[string]interface{}
+
 type GinResp struct {
 	ErrCode int64  `json:"error"`
 	ErrMsg  string `json:"error_msg"`
@@ -128,12 +130,12 @@ func DecodeHashIDs(salt string, minLen int, value string) ([]int, error) {
 }
 
 // IntArrToString 数组转换
-func IntArrToString(A []int64, delim string) string {
+func IntArrToString(A []int64, denim string) string {
 	var buffer bytes.Buffer
 	for i := 0; i < len(A); i++ {
 		buffer.WriteString(strconv.FormatInt(A[i], 10))
 		if i != len(A)-1 {
-			buffer.WriteString(delim)
+			buffer.WriteString(denim)
 		}
 	}
 	return buffer.String()
@@ -208,7 +210,7 @@ func GinDoRespSuccess(c *gin.Context, data gin.H) {
 	})
 }
 
-// 返回错误信息
+// GinDoRespInternalErr 返回错误信息
 func GinDoRespInternalErr(c *gin.Context) {
 	c.JSON(http.StatusOK, GinResp{
 		ErrCode: ErrorInternal,
