@@ -229,7 +229,7 @@ func GinDoRespErr(c *gin.Context, code int64, msg string, data gin.H) {
 }
 
 // GinDoEncRespSuccess 返回成功信息
-func GinDoEncRespSuccess(c *gin.Context, key string, data gin.H) {
+func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
 	resp := GinResp{
 		ErrCode: ErrorSuccess,
 		ErrMsg:  ErrorSuccessMsg,
@@ -237,22 +237,36 @@ func GinDoEncRespSuccess(c *gin.Context, key string, data gin.H) {
 	}
 	respBs, _ := json.Marshal(resp)
 	encResp, _ := AesEncrypt(string(respBs), key)
-	c.String(http.StatusOK, encResp)
+	if isAll {
+		resp.Data["enc"] = encResp
+	} else {
+		resp.Data = gin.H{
+			"enc": encResp,
+		}
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 // GinDoEncRespInternalErr 返回错误信息
-func GinDoEncRespInternalErr(c *gin.Context, key string) {
+func GinDoEncRespInternalErr(c *gin.Context, key string, isAll bool) {
 	resp := GinResp{
 		ErrCode: ErrorInternal,
 		ErrMsg:  ErrorInternalMsg,
 	}
 	respBs, _ := json.Marshal(resp)
 	encResp, _ := AesEncrypt(string(respBs), key)
-	c.String(http.StatusOK, encResp)
+	if isAll {
+		resp.Data["enc"] = encResp
+	} else {
+		resp.Data = gin.H{
+			"enc": encResp,
+		}
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 // GinDoEncRespErr 返回特殊错误
-func GinDoEncRespErr(c *gin.Context, key string, code int64, msg string, data gin.H) {
+func GinDoEncRespErr(c *gin.Context, key string, isAll bool, code int64, msg string, data gin.H) {
 	resp := GinResp{
 		ErrCode: code,
 		ErrMsg:  msg,
@@ -260,5 +274,12 @@ func GinDoEncRespErr(c *gin.Context, key string, code int64, msg string, data gi
 	}
 	respBs, _ := json.Marshal(resp)
 	encResp, _ := AesEncrypt(string(respBs), key)
-	c.String(http.StatusOK, encResp)
+	if isAll {
+		resp.Data["enc"] = encResp
+	} else {
+		resp.Data = gin.H{
+			"enc": encResp,
+		}
+	}
+	c.JSON(http.StatusOK, resp)
 }
