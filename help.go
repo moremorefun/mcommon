@@ -230,15 +230,19 @@ func GinDoRespErr(c *gin.Context, code int64, msg string, data gin.H) {
 
 // GinDoEncRespSuccess 返回成功信息
 func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
+	var err error
 	resp := GinResp{
 		ErrCode: ErrorSuccess,
 		ErrMsg:  ErrorSuccessMsg,
 		Data:    data,
 	}
-	respBs, err := json.Marshal(resp)
-	if err != nil {
-		GinDoRespInternalErr(c)
-		return
+	respBs := []byte("")
+	if data != nil {
+		respBs, err = json.Marshal(data)
+		if err != nil {
+			GinDoRespInternalErr(c)
+			return
+		}
 	}
 	encResp, err := AesEncrypt(string(respBs), key)
 	if err != nil {
@@ -261,23 +265,6 @@ func GinDoEncRespInternalErr(c *gin.Context, key string, isAll bool) {
 		ErrCode: ErrorInternal,
 		ErrMsg:  ErrorInternalMsg,
 	}
-	respBs, err := json.Marshal(resp)
-	if err != nil {
-		GinDoRespInternalErr(c)
-		return
-	}
-	encResp, err := AesEncrypt(string(respBs), key)
-	if err != nil {
-		GinDoRespInternalErr(c)
-		return
-	}
-	if isAll {
-		resp.Data["enc"] = encResp
-	} else {
-		resp.Data = gin.H{
-			"enc": encResp,
-		}
-	}
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -287,23 +274,6 @@ func GinDoEncRespErr(c *gin.Context, key string, isAll bool, code int64, msg str
 		ErrCode: code,
 		ErrMsg:  msg,
 		Data:    data,
-	}
-	respBs, err := json.Marshal(resp)
-	if err != nil {
-		GinDoRespInternalErr(c)
-		return
-	}
-	encResp, err := AesEncrypt(string(respBs), key)
-	if err != nil {
-		GinDoRespInternalErr(c)
-		return
-	}
-	if isAll {
-		resp.Data["enc"] = encResp
-	} else {
-		resp.Data = gin.H{
-			"enc": encResp,
-		}
 	}
 	c.JSON(http.StatusOK, resp)
 }
