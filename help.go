@@ -236,7 +236,7 @@ func GinDoEncRespSuccess(c *gin.Context, key string, data gin.H) {
 		Data:    data,
 	}
 	respBs, _ := json.Marshal(resp)
-	encResp, _ := AesDecrypt(string(respBs), key)
+	encResp, _ := AesEncrypt(string(respBs), key)
 	c.String(http.StatusOK, encResp)
 }
 
@@ -247,7 +247,7 @@ func GinDoEncRespInternalErr(c *gin.Context, key string) {
 		ErrMsg:  ErrorInternalMsg,
 	}
 	respBs, _ := json.Marshal(resp)
-	encResp, _ := AesDecrypt(string(respBs), key)
+	encResp, _ := AesEncrypt(string(respBs), key)
 	c.String(http.StatusOK, encResp)
 }
 
@@ -259,6 +259,6 @@ func GinDoEncRespErr(c *gin.Context, key string, code int64, msg string, data gi
 		Data:    data,
 	}
 	respBs, _ := json.Marshal(resp)
-	encResp, _ := AesDecrypt(string(respBs), key)
+	encResp, _ := AesEncrypt(string(respBs), key)
 	c.String(http.StatusOK, encResp)
 }
