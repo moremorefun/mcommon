@@ -3,6 +3,7 @@ package mcommon
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -225,4 +226,39 @@ func GinDoRespErr(c *gin.Context, code int64, msg string, data gin.H) {
 		ErrMsg:  msg,
 		Data:    data,
 	})
+}
+
+// GinDoEncRespSuccess 返回成功信息
+func GinDoEncRespSuccess(c *gin.Context, key string, data gin.H) {
+	resp := GinResp{
+		ErrCode: ErrorSuccess,
+		ErrMsg:  ErrorSuccessMsg,
+		Data:    data,
+	}
+	respBs, _ := json.Marshal(resp)
+	encResp, _ := AesDecrypt(string(respBs), key)
+	c.String(http.StatusOK, encResp)
+}
+
+// GinDoEncRespInternalErr 返回错误信息
+func GinDoEncRespInternalErr(c *gin.Context, key string) {
+	resp := GinResp{
+		ErrCode: ErrorInternal,
+		ErrMsg:  ErrorInternalMsg,
+	}
+	respBs, _ := json.Marshal(resp)
+	encResp, _ := AesDecrypt(string(respBs), key)
+	c.String(http.StatusOK, encResp)
+}
+
+// GinDoEncRespErr 返回特殊错误
+func GinDoEncRespErr(c *gin.Context, key string, code int64, msg string, data gin.H) {
+	resp := GinResp{
+		ErrCode: code,
+		ErrMsg:  msg,
+		Data:    data,
+	}
+	respBs, _ := json.Marshal(resp)
+	encResp, _ := AesDecrypt(string(respBs), key)
+	c.String(http.StatusOK, encResp)
 }
