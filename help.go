@@ -258,22 +258,3 @@ func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
 	}
 	c.JSON(http.StatusOK, resp)
 }
-
-// GinDoEncRespInternalErr 返回错误信息
-func GinDoEncRespInternalErr(c *gin.Context, key string, isAll bool) {
-	resp := GinResp{
-		ErrCode: ErrorInternal,
-		ErrMsg:  ErrorInternalMsg,
-	}
-	c.JSON(http.StatusOK, resp)
-}
-
-// GinDoEncRespErr 返回特殊错误
-func GinDoEncRespErr(c *gin.Context, key string, isAll bool, code int64, msg string, data gin.H) {
-	resp := GinResp{
-		ErrCode: code,
-		ErrMsg:  msg,
-		Data:    data,
-	}
-	c.JSON(http.StatusOK, resp)
-}
