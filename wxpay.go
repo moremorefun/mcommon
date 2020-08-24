@@ -36,10 +36,9 @@ type StWeChatCbBody struct {
 }
 
 // WechatGetPrepay 获取预支付信息
-func WechatGetPrepay(appID, mchID, mchKey, payBody, clientIP, cbURL, tradeType, openID string, totalFee int64) (gin.H, error) {
+func WechatGetPrepay(appID, mchID, mchKey, payBody, outTradeNo, clientIP, cbURL, tradeType, openID string, totalFee int64) (gin.H, error) {
 	retryCount := 0
 	nonce := GetUUIDStr()
-	outTradeNo := GetUUIDStr()
 	sendBody := gin.H{
 		"appid":            appID,
 		"mch_id":           mchID,
