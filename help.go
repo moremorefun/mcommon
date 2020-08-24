@@ -2,14 +2,18 @@ package mcommon
 
 import (
 	"bytes"
+	"crypto/md5"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -24,6 +28,12 @@ type GinResp struct {
 	ErrCode int64  `json:"error"`
 	ErrMsg  string `json:"error_msg"`
 	Data    gin.H  `json:"data,omitempty"`
+}
+
+type XMLNode struct {
+	XMLName xml.Name
+	Content string    `xml:",chardata"`
+	Nodes   []XMLNode `xml:",any"`
 }
 
 // GinRespSuccess 成功返回
@@ -244,6 +254,8 @@ func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
 			GinDoRespInternalErr(c)
 			return
 		}
+	} else {
+		resp.Data = gin.H{}
 	}
 	encResp, err := AesEncrypt(string(respBs), key)
 	if err != nil {
@@ -269,4 +281,64 @@ func GetHash(in string) (string, error) {
 	}
 	out := fmt.Sprintf("%x", h.Sum(nil))
 	return out, nil
+}
+
+// WechatGetSign 获取签名
+func WechatGetSign(appSecret string, paramsMap gin.H) string {
+	var args []string
+	var keys []string
+	for k := range paramsMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := fmt.Sprintf("%s=%v", k, paramsMap[k])
+		args = append(args, v)
+	}
+	baseString := strings.Join(args, "&")
+	baseString += fmt.Sprintf("&key=%s", appSecret)
+	data := []byte(baseString)
+	r := md5.Sum(data)
+	signedString := hex.EncodeToString(r[:])
+	return strings.ToUpper(signedString)
+}
+
+// WechatCheckSign 检查签名
+func WechatCheckSign(appSecret string, paramsMap gin.H) bool {
+	noSignMap := gin.H{}
+	for k, v := range paramsMap {
+		if k != "sign" && k != "xml" {
+			noSignMap[k] = v
+		}
+	}
+	getSign := WechatGetSign(appSecret, noSignMap)
+	if getSign != paramsMap["sign"] {
+		return false
+	}
+	return true
+}
+
+// XMLWalk 遍历xml
+func XMLWalk(bs []byte) (map[string]interface{}, error) {
+	buf := bytes.NewBuffer(bs)
+	dec := xml.NewDecoder(buf)
+	r := make(map[string]interface{})
+	var n XMLNode
+	err := dec.Decode(&n)
+	if err != nil {
+		return nil, err
+	}
+	walk([]XMLNode{n}, func(n XMLNode) bool {
+		r[n.XMLName.Local] = n.Content
+		return true
+	})
+	return r, nil
+}
+
+func walk(nodes []XMLNode, f func(XMLNode) bool) {
+	for _, n := range nodes {
+		if f(n) {
+			walk(n.Nodes, f)
+		}
+	}
 }
