@@ -236,7 +236,7 @@ func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
 		ErrMsg:  ErrorSuccessMsg,
 		Data:    data,
 	}
-	respBs := []byte("")
+	respBs := []byte("{}")
 	if data != nil {
 		respBs, err = json.Marshal(data)
 		if err != nil {
