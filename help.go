@@ -2,6 +2,7 @@ package mcommon
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -257,4 +258,15 @@ func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
 		}
 	}
 	c.JSON(http.StatusOK, resp)
+}
+
+// GetHash 获取hash
+func GetHash(in string) (string, error) {
+	h := sha256.New()
+	_, err := h.Write([]byte(in))
+	if err != nil {
+		return "", err
+	}
+	out := fmt.Sprintf("%x", h.Sum(nil))
+	return out, nil
 }
