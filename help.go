@@ -307,7 +307,7 @@ func WechatGetSign(appSecret string, paramsMap gin.H) string {
 func WechatCheckSign(appSecret string, paramsMap gin.H) bool {
 	noSignMap := gin.H{}
 	for k, v := range paramsMap {
-		if k != "sign" && k != "xml" {
+		if k != "sign" {
 			noSignMap[k] = v
 		}
 	}
@@ -329,7 +329,10 @@ func XMLWalk(bs []byte) (map[string]interface{}, error) {
 		return nil, err
 	}
 	walk([]XMLNode{n}, func(n XMLNode) bool {
-		r[n.XMLName.Local] = n.Content
+		content := strings.TrimSpace(n.Content)
+		if content != "" {
+			r[n.XMLName.Local] = n.Content
+		}
 		return true
 	})
 	return r, nil
