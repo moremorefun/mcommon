@@ -10,6 +10,7 @@ require (
 	github.com/parnurzeal/gorequest v0.2.16
 	github.com/qiniu/api.v7/v7 v7.5.0
 	github.com/satori/go.uuid v1.2.0
+	github.com/schemalex/schemalex v0.1.1
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/tencentcloud/tencentcloud-sdk-go v3.0.213+incompatible
