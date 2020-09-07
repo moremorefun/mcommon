@@ -37,6 +37,7 @@ var debugSQLCountMap map[string]int64
 func DbCreate(dataSourceName string, showSQL bool) *sqlx.DB {
 	isShowSQL = showSQL
 	debugSQLMap = make(map[string]string)
+	debugSQLCountMap = make(map[string]int64)
 
 	var err error
 	var db *sqlx.DB
