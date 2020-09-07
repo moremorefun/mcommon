@@ -2,6 +2,7 @@ package mcommon
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"crypto/sha256"
 	"encoding/binary"
@@ -347,7 +348,7 @@ func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
 }
 
 // GinMinTokenToUserID token转换为user_id
-func GinMinTokenToUserID(c *gin.Context, getUserIDByToken func(token string) (int64, error)) {
+func GinMinTokenToUserID(c *gin.Context, tx DbExeAble, getUserIDByToken func(ctx context.Context, tx DbExeAble, token string) (int64, error)) {
 	err := GinRepeatReadBody(c)
 	if err != nil {
 		GinDoRespInternalErr(c)
@@ -371,7 +372,7 @@ func GinMinTokenToUserID(c *gin.Context, getUserIDByToken func(token string) (in
 		c.Abort()
 		return
 	}
-	userID, err := getUserIDByToken(req.Token)
+	userID, err := getUserIDByToken(c, tx, req.Token)
 	if err != nil {
 		Log.Errorf("err: [%T] %s", err, err.Error())
 		GinDoRespInternalErr(c)
