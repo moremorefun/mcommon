@@ -30,6 +30,9 @@ var isShowSQL bool
 // debugSQLMap 记录
 var debugSQLMap map[string]string
 
+// debugSQLCountMap sql次数
+var debugSQLCountMap map[string]int64
+
 // DbCreate 创建数据库链接
 func DbCreate(dataSourceName string, showSQL bool) *sqlx.DB {
 	isShowSQL = showSQL
@@ -80,6 +83,7 @@ func DbExecuteCountManyContent(ctx context.Context, tx DbExeAble, query string, 
 		}
 		Log.Debugf(queryStr)
 		debugSQLMap[query] = queryStr
+		debugSQLCountMap[query] += 1
 	}
 	ret, err := tx.ExecContext(
 		ctx,
@@ -119,6 +123,7 @@ func DbExecuteLastIDNamedContent(ctx context.Context, tx DbExeAble, query string
 		}
 		Log.Debugf(queryStr)
 		debugSQLMap[query] = queryStr
+		debugSQLCountMap[query] += 1
 	}
 	ret, err := tx.ExecContext(
 		ctx,
@@ -158,6 +163,7 @@ func DbExecuteCountNamedContent(ctx context.Context, tx DbExeAble, query string,
 		}
 		Log.Debugf(queryStr)
 		debugSQLMap[query] = queryStr
+		debugSQLCountMap[query] += 1
 	}
 	ret, err := tx.ExecContext(
 		ctx,
@@ -197,6 +203,7 @@ func DbGetNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, quer
 		}
 		Log.Debugf(queryStr)
 		debugSQLMap[query] = queryStr
+		debugSQLCountMap[query] += 1
 	}
 	err = tx.GetContext(
 		ctx,
@@ -238,6 +245,7 @@ func DbSelectNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, q
 		}
 		Log.Debugf(queryStr)
 		debugSQLMap[query] = queryStr
+		debugSQLCountMap[query] += 1
 	}
 	err = tx.SelectContext(
 		ctx,
@@ -259,4 +267,9 @@ func DbSelectNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, q
 // DbGetDebugMap 获取debug sql 记录
 func DbGetDebugMap() map[string]string {
 	return debugSQLMap
+}
+
+// DbGetDebugCountMap 获取debug sql 次数
+func DbGetDebugCountMap() map[string]int64 {
+	return debugSQLCountMap
 }
