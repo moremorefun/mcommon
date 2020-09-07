@@ -15,4 +15,7 @@ const (
 	ErrorBind = -2
 	// ErrorBindMsg 输入绑定错误
 	ErrorBindMsg = "input bind"
+
+	ErrorToken    = -1000
+	ErrorTokenMsg = "token error"
 )

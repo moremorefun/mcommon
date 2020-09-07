@@ -163,6 +163,80 @@ func Ip2long(ipAddr string) (uint32, error) {
 	return binary.BigEndian.Uint32(ip), nil
 }
 
+// GetHash 获取hash
+func GetHash(in string) (string, error) {
+	h := sha256.New()
+	_, err := h.Write([]byte(in))
+	if err != nil {
+		return "", err
+	}
+	out := fmt.Sprintf("%x", h.Sum(nil))
+	return out, nil
+}
+
+// WechatGetSign 获取签名
+func WechatGetSign(appSecret string, paramsMap gin.H) string {
+	var args []string
+	var keys []string
+	for k := range paramsMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := fmt.Sprintf("%s=%v", k, paramsMap[k])
+		args = append(args, v)
+	}
+	baseString := strings.Join(args, "&")
+	baseString += fmt.Sprintf("&key=%s", appSecret)
+	data := []byte(baseString)
+	r := md5.Sum(data)
+	signedString := hex.EncodeToString(r[:])
+	return strings.ToUpper(signedString)
+}
+
+// WechatCheckSign 检查签名
+func WechatCheckSign(appSecret string, paramsMap gin.H) bool {
+	noSignMap := gin.H{}
+	for k, v := range paramsMap {
+		if k != "sign" {
+			noSignMap[k] = v
+		}
+	}
+	getSign := WechatGetSign(appSecret, noSignMap)
+	if getSign != paramsMap["sign"] {
+		return false
+	}
+	return true
+}
+
+func walk(nodes []XMLNode, f func(XMLNode) bool) {
+	for _, n := range nodes {
+		if f(n) {
+			walk(n.Nodes, f)
+		}
+	}
+}
+
+// XMLWalk 遍历xml
+func XMLWalk(bs []byte) (map[string]interface{}, error) {
+	buf := bytes.NewBuffer(bs)
+	dec := xml.NewDecoder(buf)
+	r := make(map[string]interface{})
+	var n XMLNode
+	err := dec.Decode(&n)
+	if err != nil {
+		return nil, err
+	}
+	walk([]XMLNode{n}, func(n XMLNode) bool {
+		content := strings.TrimSpace(n.Content)
+		if content != "" {
+			r[n.XMLName.Local] = n.Content
+		}
+		return true
+	})
+	return r, nil
+}
+
 // GinRepeatReadBody 创建可重复度body
 func GinRepeatReadBody(c *gin.Context) error {
 	var err error
@@ -272,76 +346,43 @@ func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// GetHash 获取hash
-func GetHash(in string) (string, error) {
-	h := sha256.New()
-	_, err := h.Write([]byte(in))
+// GinMinTokenToUserID token转换为user_id
+func GinMinTokenToUserID(c *gin.Context, getUserIDByToken func(token string) (int64, error)) {
+	err := GinRepeatReadBody(c)
 	if err != nil {
-		return "", err
+		GinDoRespInternalErr(c)
+		c.Abort()
+		return
 	}
-	out := fmt.Sprintf("%x", h.Sum(nil))
-	return out, nil
-}
-
-// WechatGetSign 获取签名
-func WechatGetSign(appSecret string, paramsMap gin.H) string {
-	var args []string
-	var keys []string
-	for k := range paramsMap {
-		keys = append(keys, k)
+	var req struct {
+		Token string `json:"token" binding:"required"`
 	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		v := fmt.Sprintf("%s=%v", k, paramsMap[k])
-		args = append(args, v)
-	}
-	baseString := strings.Join(args, "&")
-	baseString += fmt.Sprintf("&key=%s", appSecret)
-	data := []byte(baseString)
-	r := md5.Sum(data)
-	signedString := hex.EncodeToString(r[:])
-	return strings.ToUpper(signedString)
-}
-
-// WechatCheckSign 检查签名
-func WechatCheckSign(appSecret string, paramsMap gin.H) bool {
-	noSignMap := gin.H{}
-	for k, v := range paramsMap {
-		if k != "sign" {
-			noSignMap[k] = v
-		}
-	}
-	getSign := WechatGetSign(appSecret, noSignMap)
-	if getSign != paramsMap["sign"] {
-		return false
-	}
-	return true
-}
-
-// XMLWalk 遍历xml
-func XMLWalk(bs []byte) (map[string]interface{}, error) {
-	buf := bytes.NewBuffer(bs)
-	dec := xml.NewDecoder(buf)
-	r := make(map[string]interface{})
-	var n XMLNode
-	err := dec.Decode(&n)
+	err = c.ShouldBind(&req)
 	if err != nil {
-		return nil, err
+		Log.Errorf("err: [%T] %s", err, err.Error())
+		GinFillBindError(c, err)
+		c.Abort()
+		return
 	}
-	walk([]XMLNode{n}, func(n XMLNode) bool {
-		content := strings.TrimSpace(n.Content)
-		if content != "" {
-			r[n.XMLName.Local] = n.Content
-		}
-		return true
-	})
-	return r, nil
-}
-
-func walk(nodes []XMLNode, f func(XMLNode) bool) {
-	for _, n := range nodes {
-		if f(n) {
-			walk(n.Nodes, f)
-		}
+	bodyErr := GinRepeatReadBody(c)
+	if bodyErr != nil {
+		Log.Errorf("err: [%T] %s", bodyErr, bodyErr.Error())
+		GinDoRespInternalErr(c)
+		c.Abort()
+		return
 	}
+	userID, err := getUserIDByToken(req.Token)
+	if err != nil {
+		Log.Errorf("err: [%T] %s", err, err.Error())
+		GinDoRespInternalErr(c)
+		c.Abort()
+		return
+	}
+	if userID == 0 {
+		GinDoRespErr(c, ErrorToken, ErrorTokenMsg, nil)
+		c.Abort()
+		return
+	}
+	c.Set("user_id", userID)
+	c.Next()
 }
