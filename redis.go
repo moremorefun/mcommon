@@ -47,10 +47,11 @@ func RedisGet(ctx context.Context, client *redis.Client, key string) (string, er
 }
 
 // RedisSet 设置
-func RedisSet(ctx context.Context, client *redis.Client, key, value string, du time.Duration) {
+func RedisSet(ctx context.Context, client *redis.Client, key, value string, du time.Duration) error {
 	key = fmt.Sprintf("%s_%s", baseKey, key)
 	err := client.WithContext(ctx).Set(key, value, du).Err()
 	if err != nil {
-		return
+		return err
 	}
+	return nil
 }
