@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
@@ -236,6 +237,11 @@ func XMLWalk(bs []byte) (map[string]interface{}, error) {
 		return true
 	})
 	return r, nil
+}
+
+// TimeGetMillisecond 获取毫秒
+func TimeGetMillisecond() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
 // GinRepeatReadBody 创建可重复度body
