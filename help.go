@@ -143,22 +143,6 @@ func DecodeHashIDs(salt string, minLen int, value string) ([]int, error) {
 	return e, nil
 }
 
-// EncodeHashIDToInt 获取hash id
-func EncodeHashIDToInt(salt string, minLen int, id int) (string, error) {
-	hd := &hashids.HashIDData{Alphabet: "1234567890"}
-	hd.Salt = salt
-	hd.MinLength = minLen
-	h, err := hashids.NewWithData(hd)
-	if err != nil {
-		return "", err
-	}
-	e, err := h.Encode([]int{id})
-	if err != nil {
-		return "", err
-	}
-	return e, nil
-}
-
 // IntArrToString 数组转换
 func IntArrToString(A []int64, denim string) string {
 	var buffer bytes.Buffer
