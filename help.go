@@ -19,6 +19,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis"
+
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 	"github.com/speps/go-hashids"
@@ -380,6 +382,49 @@ func GinMinTokenToUserID(tx DbExeAble, getUserIDByToken func(ctx context.Context
 			return
 		}
 		userID, err := getUserIDByToken(c, tx, req.Token)
+		if err != nil {
+			Log.Errorf("err: [%T] %s", err, err.Error())
+			GinDoRespInternalErr(c)
+			c.Abort()
+			return
+		}
+		if userID == 0 {
+			GinDoRespErr(c, ErrorToken, ErrorTokenMsg, nil)
+			c.Abort()
+			return
+		}
+		c.Set("user_id", userID)
+		c.Next()
+	}
+}
+
+// GinMinTokenToUserIDRedis token转换为user_id
+func GinMinTokenToUserIDRedis(tx DbExeAble, redisClient *redis.Client, getUserIDByToken func(ctx context.Context, tx DbExeAble, redisClient *redis.Client, token string) (int64, error)) func(*gin.Context) {
+	return func(c *gin.Context) {
+		err := GinRepeatReadBody(c)
+		if err != nil {
+			GinDoRespInternalErr(c)
+			c.Abort()
+			return
+		}
+		var req struct {
+			Token string `json:"token" binding:"required"`
+		}
+		err = c.ShouldBind(&req)
+		if err != nil {
+			Log.Errorf("err: [%T] %s", err, err.Error())
+			GinFillBindError(c, err)
+			c.Abort()
+			return
+		}
+		bodyErr := GinRepeatReadBody(c)
+		if bodyErr != nil {
+			Log.Errorf("err: [%T] %s", bodyErr, bodyErr.Error())
+			GinDoRespInternalErr(c)
+			c.Abort()
+			return
+		}
+		userID, err := getUserIDByToken(c, tx, redisClient, req.Token)
 		if err != nil {
 			Log.Errorf("err: [%T] %s", err, err.Error())
 			GinDoRespInternalErr(c)
