@@ -88,6 +88,9 @@ func SQLRedisGetWxToken(c context.Context, tx DbExeAble, redisClient *redis.Clie
 	if err != nil {
 		return "", err
 	}
+	if secret == "" {
+		return "", fmt.Errorf("no app of %s", appID)
+	}
 	// 1. 在有效期内
 	if expiresAt > time.Now().Unix() {
 		return accessToken, nil
