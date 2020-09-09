@@ -55,3 +55,13 @@ func RedisSet(ctx context.Context, client *redis.Client, key, value string, du t
 	}
 	return nil
 }
+
+// RedisRm 删除
+func RedisRm(ctx context.Context, client *redis.Client, key string) error {
+	key = fmt.Sprintf("%s_%s", baseKey, key)
+	err := client.WithContext(ctx).Del(key).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
