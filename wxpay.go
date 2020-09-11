@@ -74,7 +74,7 @@ GotoHttpRetry:
 		return nil, err
 	}
 	if !WechatCheckSign(mchKey, respMap) {
-		return nil, fmt.Errorf("sign error")
+		return nil, fmt.Errorf("sign error: %s", body)
 	}
 	type stRespXMLXML struct {
 		XMLName    xml.Name `xml:"xml"`
