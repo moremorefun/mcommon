@@ -298,6 +298,9 @@ func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, ke
 	query.WriteString(`WHERE
 `)
 	for i, key := range keys {
+		if i != 0 {
+			query.WriteString(" AND")
+		}
 		value := values[i]
 		query.WriteString(key)
 		rt := reflect.TypeOf(value)
@@ -348,6 +351,9 @@ FROM
 	query.WriteString(table)
 	query.WriteString("\nWHERE\n")
 	for i, key := range keys {
+		if i != 0 {
+			query.WriteString(" AND")
+		}
 		value := values[i]
 		query.WriteString(key)
 		rt := reflect.TypeOf(value)
