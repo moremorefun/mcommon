@@ -265,6 +265,126 @@ func DbSelectNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, q
 	return nil
 }
 
+// DbUpdateKV 更新
+func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, keys []string, values []interface{}) (int64, error) {
+	keysLen := len(keys)
+	if 0 == keysLen {
+		return 0, fmt.Errorf("keys len error")
+	}
+	if keysLen != len(values) {
+		return 0, fmt.Errorf("value len error")
+	}
+	lastKeyIndex := keysLen - 1
+	updateLastIndex := len(updateMap) - 1
+
+	argMap := H{}
+	query := strings.Builder{}
+	query.WriteString("UPDATE\n")
+	query.WriteString(table)
+	query.WriteString("\nSET\n")
+	var updateIndex int
+	for k, v := range updateMap {
+		query.WriteString(k)
+		query.WriteString("=:")
+		query.WriteString(k)
+		if updateIndex == updateLastIndex {
+			query.WriteString("\n")
+		} else {
+			query.WriteString(",\n")
+		}
+		updateIndex++
+		argMap[k] = v
+	}
+	query.WriteString(`WHERE
+`)
+	for i, key := range keys {
+		value := values[i]
+		query.WriteString(key)
+		argValues, ok := value.([]interface{})
+		if ok {
+			if len(argValues) == 0 {
+				return 0, nil
+			}
+			query.WriteString(" IN (:")
+			query.WriteString(key)
+			query.WriteString(" )")
+		} else {
+			query.WriteString("=:")
+			query.WriteString(key)
+		}
+		if i == lastKeyIndex {
+			query.WriteString("\n")
+		} else {
+			query.WriteString(",\n")
+		}
+		argMap[key] = value
+	}
+
+	count, err := DbExecuteCountNamedContent(
+		ctx,
+		tx,
+		query.String(),
+		argMap,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// SQLDeleteKV 删除
+func SQLDeleteKV(ctx context.Context, tx DbExeAble, table string, updateMap H, keys []string, values []interface{}) (int64, error) {
+	keysLen := len(keys)
+	if 0 == keysLen {
+		return 0, fmt.Errorf("keys len error")
+	}
+	if keysLen != len(values) {
+		return 0, fmt.Errorf("value len error")
+	}
+	lastKeyIndex := keysLen - 1
+	argMap := H{}
+
+	query := strings.Builder{}
+	query.WriteString(`DELETE
+FROM
+`)
+	query.WriteString(table)
+	query.WriteString("\nWHERE\n")
+	for i, key := range keys {
+		value := values[i]
+		query.WriteString(key)
+		argValues, ok := value.([]interface{})
+		if ok {
+			if len(argValues) == 0 {
+				return 0, nil
+			}
+			query.WriteString(" IN (:")
+			query.WriteString(key)
+			query.WriteString(" )")
+		} else {
+			query.WriteString("=:")
+			query.WriteString(key)
+		}
+		if i == lastKeyIndex {
+			query.WriteString("\n")
+		} else {
+			query.WriteString(",\n")
+		}
+		argMap[key] = value
+	}
+
+	count, err := DbExecuteCountNamedContent(
+		ctx,
+		tx,
+		query.String(),
+		argMap,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 // DbTransaction 执行事物
 func DbTransaction(ctx context.Context, db *sqlx.DB, f func(dbTx DbExeAble) error) error {
 	isComment := false
