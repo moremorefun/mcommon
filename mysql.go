@@ -274,7 +274,6 @@ func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, ke
 	if keysLen != len(values) {
 		return 0, fmt.Errorf("value len error")
 	}
-	lastKeyIndex := keysLen - 1
 	updateLastIndex := len(updateMap) - 1
 
 	argMap := H{}
@@ -312,11 +311,7 @@ func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, ke
 			query.WriteString("=:")
 			query.WriteString(key)
 		}
-		if i == lastKeyIndex {
-			query.WriteString("\n")
-		} else {
-			query.WriteString(",\n")
-		}
+		query.WriteString("\n")
 		argMap[key] = value
 	}
 
@@ -341,7 +336,6 @@ func SQLDeleteKV(ctx context.Context, tx DbExeAble, table string, updateMap H, k
 	if keysLen != len(values) {
 		return 0, fmt.Errorf("value len error")
 	}
-	lastKeyIndex := keysLen - 1
 	argMap := H{}
 
 	query := strings.Builder{}
@@ -365,11 +359,7 @@ FROM
 			query.WriteString("=:")
 			query.WriteString(key)
 		}
-		if i == lastKeyIndex {
-			query.WriteString("\n")
-		} else {
-			query.WriteString(",\n")
-		}
+		query.WriteString("\n")
 		argMap[key] = value
 	}
 
