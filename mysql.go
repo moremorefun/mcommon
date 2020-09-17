@@ -303,6 +303,10 @@ func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, ke
 		rt := reflect.TypeOf(value)
 		switch rt.Kind() {
 		case reflect.Slice:
+			s := reflect.ValueOf(value)
+			if s.Len() == 0 {
+				return 0, nil
+			}
 			query.WriteString(" IN (:")
 			query.WriteString(key)
 			query.WriteString(" )")
@@ -349,6 +353,10 @@ FROM
 		rt := reflect.TypeOf(value)
 		switch rt.Kind() {
 		case reflect.Slice:
+			s := reflect.ValueOf(value)
+			if s.Len() == 0 {
+				return 0, nil
+			}
 			query.WriteString(" IN (:")
 			query.WriteString(key)
 			query.WriteString(" )")
