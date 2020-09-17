@@ -22,6 +22,8 @@ type DbExeAble interface {
 	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+
+	BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
 }
 
 // isShowSQL 是否显示执行的sql语句
@@ -262,6 +264,30 @@ func DbSelectNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, q
 		// 执行错误
 		return err
 	}
+	return nil
+}
+
+// DbTransaction 执行事物
+func DbTransaction(ctx context.Context, tx DbExeAble, f func(innerDbTx *sqlx.Tx) error) error {
+	isComment := false
+	dbTx, err := tx.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if !isComment {
+			_ = dbTx.Rollback()
+		}
+	}()
+	err = f(dbTx)
+	if err != nil {
+		return err
+	}
+	err = dbTx.Commit()
+	if err != nil {
+		return err
+	}
+	isComment = true
 	return nil
 }
 
