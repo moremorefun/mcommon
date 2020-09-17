@@ -299,7 +299,7 @@ func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, ke
 `)
 	for i, key := range keys {
 		if i != 0 {
-			query.WriteString(" AND")
+			query.WriteString("AND ")
 		}
 		value := values[i]
 		query.WriteString(key)
@@ -352,7 +352,7 @@ FROM
 	query.WriteString("\nWHERE\n")
 	for i, key := range keys {
 		if i != 0 {
-			query.WriteString(" AND")
+			query.WriteString("AND ")
 		}
 		value := values[i]
 		query.WriteString(key)
