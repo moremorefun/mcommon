@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
 	"runtime"
 	"strings"
 	"time"
@@ -299,15 +300,13 @@ func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, ke
 	for i, key := range keys {
 		value := values[i]
 		query.WriteString(key)
-		argValues, ok := value.([]interface{})
-		if ok {
-			if len(argValues) == 0 {
-				return 0, nil
-			}
+		rt := reflect.TypeOf(value)
+		switch rt.Kind() {
+		case reflect.Slice:
 			query.WriteString(" IN (:")
 			query.WriteString(key)
 			query.WriteString(" )")
-		} else {
+		default:
 			query.WriteString("=:")
 			query.WriteString(key)
 		}
@@ -347,15 +346,13 @@ FROM
 	for i, key := range keys {
 		value := values[i]
 		query.WriteString(key)
-		argValues, ok := value.([]interface{})
-		if ok {
-			if len(argValues) == 0 {
-				return 0, nil
-			}
+		rt := reflect.TypeOf(value)
+		switch rt.Kind() {
+		case reflect.Slice:
 			query.WriteString(" IN (:")
 			query.WriteString(key)
 			query.WriteString(" )")
-		} else {
+		default:
 			query.WriteString("=:")
 			query.WriteString(key)
 		}
