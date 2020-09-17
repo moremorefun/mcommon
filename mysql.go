@@ -328,7 +328,7 @@ func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, ke
 }
 
 // DbDeleteKV 删除
-func DbDeleteKV(ctx context.Context, tx DbExeAble, table string, updateMap H, keys []string, values []interface{}) (int64, error) {
+func DbDeleteKV(ctx context.Context, tx DbExeAble, table string, keys []string, values []interface{}) (int64, error) {
 	keysLen := len(keys)
 	if 0 == keysLen {
 		return 0, fmt.Errorf("keys len error")
