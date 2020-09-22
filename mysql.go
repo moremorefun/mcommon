@@ -295,8 +295,7 @@ func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, ke
 		updateIndex++
 		argMap[k] = v
 	}
-	query.WriteString(`WHERE
-`)
+	query.WriteString("WHERE\n")
 	for i, key := range keys {
 		if i != 0 {
 			query.WriteString("AND ")
@@ -345,9 +344,7 @@ func DbDeleteKV(ctx context.Context, tx DbExeAble, table string, keys []string, 
 	argMap := H{}
 
 	query := strings.Builder{}
-	query.WriteString(`DELETE
-FROM
-`)
+	query.WriteString("DELETE\nFROM\n")
 	query.WriteString(table)
 	query.WriteString("\nWHERE\n")
 	for i, key := range keys {
