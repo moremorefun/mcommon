@@ -355,6 +355,17 @@ func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// GinMidRepeatReadBody 创建可重复度body
+func GinMidRepeatReadBody(c *gin.Context) {
+	err := GinRepeatReadBody(c)
+	if err != nil {
+		Log.Errorf("err: [%T] %s", err, err.Error())
+		GinDoRespInternalErr(c)
+		c.Abort()
+		return
+	}
+}
+
 // GinMinTokenToUserID token转换为user_id
 func GinMinTokenToUserID(tx DbExeAble, getUserIDByToken func(ctx context.Context, tx DbExeAble, token string) (int64, error)) func(*gin.Context) {
 	return func(c *gin.Context) {
