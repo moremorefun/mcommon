@@ -279,6 +279,13 @@ func GinShouldBindRepeat(c *gin.Context, obj interface{}) error {
 
 // GinFillBindError 检测gin输入绑定错误
 func GinFillBindError(c *gin.Context, err error) {
+	repeatErr := GinRepeatReadBody(c)
+	if repeatErr != nil {
+		Log.Errorf("err: [%T] %s", repeatErr, repeatErr.Error())
+	} else {
+		body, _ := ioutil.ReadAll(c.Request.Body)
+		Log.Infof("bind error body is: %s", body)
+	}
 	GinDoRespErr(
 		c,
 		ErrorBind,
