@@ -58,3 +58,14 @@ func QiniuGetDownloadURL(ctx context.Context, access string, secret string, doma
 	privateAccessURL := storage.MakePrivateURL(mac, domain, fileKey, deadline)
 	return privateAccessURL
 }
+
+// QiniuTokenFrom 获取上传token
+func QiniuTokenFrom(ctx context.Context, access string, secret string, bucket string) string {
+	putPolicy := storage.PutPolicy{
+		Scope: bucket,
+	}
+	putPolicy.Expires = 7200 //示例2小时有效期
+	mac := qbox.NewMac(access, secret)
+	upToken := putPolicy.UploadToken(mac)
+	return upToken
+}
