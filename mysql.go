@@ -311,7 +311,7 @@ func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, ke
 			}
 			query.WriteString(" IN (:")
 			query.WriteString(key)
-			query.WriteString(" )")
+			query.WriteString(")")
 		default:
 			query.WriteString("=:")
 			query.WriteString(key)
@@ -362,7 +362,7 @@ func DbDeleteKV(ctx context.Context, tx DbExeAble, table string, keys []string, 
 			}
 			query.WriteString(" IN (:")
 			query.WriteString(key)
-			query.WriteString(" )")
+			query.WriteString(")")
 		default:
 			query.WriteString("=:")
 			query.WriteString(key)
