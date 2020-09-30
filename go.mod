@@ -3,6 +3,7 @@ module github.com/moremorefun/mcommon
 go 1.14
 
 require (
+	github.com/disintegration/imaging v1.6.2
 	github.com/elazarl/goproxy v0.0.0-20200809112317-0581fc3aee2d // indirect
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis v6.15.9+incompatible
