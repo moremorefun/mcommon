@@ -36,7 +36,7 @@ type WxAppCodeResp struct {
 type WxAppUserInfoResp struct {
 	Openid     string `json:"openid"`
 	Nickname   string `json:"nickname"`
-	Sex        uint64 `json:"sex"`
+	Sex        int64  `json:"sex"`
 	Province   string `json:"province"`
 	City       string `json:"city"`
 	Country    string `json:"country"`
