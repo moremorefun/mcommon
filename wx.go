@@ -120,9 +120,9 @@ GotoHttpRetry:
 	_, body, errs := gorequest.New().
 		Get("https://api.weixin.qq.com/sns/userinfo").
 		Query(gin.H{
-			"access_token":      accessToken,
-			"openid":     openID,
-			"lang":     "zh_CN",,
+			"access_token": accessToken,
+			"openid":       openID,
+			"lang":         "zh_CN",
 		}).EndBytes()
 	if errs != nil {
 		retryCount++
