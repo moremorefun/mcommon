@@ -458,3 +458,43 @@ func GinMinTokenToUserIDRedis(tx DbExeAble, redisClient *redis.Client, getUserID
 		c.Next()
 	}
 }
+
+// GinMinTokenToUserIDRedisIgnore token转换为user_id
+func GinMinTokenToUserIDRedisIgnore(tx DbExeAble, redisClient *redis.Client, getUserIDByToken func(ctx context.Context, tx DbExeAble, redisClient *redis.Client, token string) (int64, error)) func(*gin.Context) {
+	return func(c *gin.Context) {
+		err := GinRepeatReadBody(c)
+		if err != nil {
+			GinDoRespInternalErr(c)
+			c.Abort()
+			return
+		}
+		var req struct {
+			Token string `json:"token" binding:"omitempty"`
+		}
+		err = c.ShouldBind(&req)
+		if err != nil {
+			c.Next()
+			return
+		}
+		bodyErr := GinRepeatReadBody(c)
+		if bodyErr != nil {
+			Log.Errorf("err: [%T] %s", bodyErr, bodyErr.Error())
+			GinDoRespInternalErr(c)
+			c.Abort()
+			return
+		}
+		userID, err := getUserIDByToken(c, tx, redisClient, req.Token)
+		if err != nil {
+			Log.Errorf("err: [%T] %s", err, err.Error())
+			GinDoRespInternalErr(c)
+			c.Abort()
+			return
+		}
+		if userID == 0 {
+			c.Next()
+			return
+		}
+		c.Set("user_id", userID)
+		c.Next()
+	}
+}
