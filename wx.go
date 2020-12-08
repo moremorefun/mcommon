@@ -58,6 +58,7 @@ GotoHttpRetry:
 			"grant_type": "authorization_code",
 		}).EndBytes()
 	if errs != nil {
+		Log.Errorf("err: [%T] %s %s", errs[0], errs[0].Error(), code)
 		retryCount++
 		if retryCount < 3 {
 			goto GotoHttpRetry
@@ -67,6 +68,7 @@ GotoHttpRetry:
 	var apiResp WxJsCodeResp
 	err := json.Unmarshal(body, &apiResp)
 	if err != nil {
+		Log.Errorf("json err: %s %s %s", err.Error(), body, code)
 		retryCount++
 		if retryCount < 3 {
 			goto GotoHttpRetry
