@@ -17,7 +17,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/qiniu/api.v7/v7 v7.8.0
 	github.com/satori/go.uuid v1.2.0
-	github.com/schemalex/schemalex v0.1.1
+	github.com/schemalex/schemalex v0.1.2-0.20201120132426-1265e8bfd186
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/tencentcloud/tencentcloud-sdk-go v3.0.233+incompatible
