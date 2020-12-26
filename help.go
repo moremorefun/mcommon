@@ -284,7 +284,7 @@ func GinFillBindError(c *gin.Context, err error) {
 		Log.Errorf("err: [%T] %s", repeatErr, repeatErr.Error())
 	} else {
 		body, _ := ioutil.ReadAll(c.Request.Body)
-		Log.Infof("bind error body is: %s", body)
+		Log.Warnf("bind error body is: %s", body)
 	}
 	GinDoRespErr(
 		c,
