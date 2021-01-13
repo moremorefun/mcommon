@@ -203,6 +203,12 @@ func (q *selectData) Offset(offset int64) *selectData {
 	return q
 }
 
+// Join 链接
+func (q *selectData) Join(join SQLMaker) *selectData {
+	q.joins = append(q.joins, join)
+	return q
+}
+
 // ForUpdate 加锁
 func (q *selectData) ForUpdate() *selectData {
 	q.isForUpdate = true
