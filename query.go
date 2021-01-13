@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	JoinTypeInner = 1
+	QueryJoinTypeInner = 1
 )
 
 func getK(old string) string {
@@ -18,23 +18,23 @@ func getK(old string) string {
 	return old
 }
 
-type Kv struct {
+type QueryKv struct {
 	K string
 	V interface{}
 }
 
-type KvStr struct {
+type QueryKvStr struct {
 	K string
 	V string
 }
 
-type SQLMaker interface {
+type QueryMaker interface {
 	ToSQL() ([]byte, map[string]interface{}, error)
 }
 
-type Eq Kv
+type QueryEq QueryKv
 
-func (o Eq) ToSQL() ([]byte, map[string]interface{}, error) {
+func (o QueryEq) ToSQL() ([]byte, map[string]interface{}, error) {
 	k := getK(o.K)
 
 	var buf bytes.Buffer
@@ -58,26 +58,26 @@ func (o Eq) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), args, nil
 }
 
-type Desc string
+type QueryDesc string
 
-func (o Desc) ToSQL() ([]byte, map[string]interface{}, error) {
+func (o QueryDesc) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
 	buf.WriteString(string(o))
 	buf.WriteString(" DESC")
 	return buf.Bytes(), nil, nil
 }
 
-type Asc string
+type QueryAsc string
 
-func (o Asc) ToSQL() ([]byte, map[string]interface{}, error) {
+func (o QueryAsc) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
 	buf.WriteString(string(o))
 	return buf.Bytes(), nil, nil
 }
 
-type EqColumn KvStr
+type QueryEqColumn QueryKvStr
 
-func (o EqColumn) ToSQL() ([]byte, map[string]interface{}, error) {
+func (o QueryEqColumn) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
 	buf.WriteString(o.K)
 	buf.WriteString("=")
@@ -88,11 +88,11 @@ func (o EqColumn) ToSQL() ([]byte, map[string]interface{}, error) {
 type join struct {
 	joinType int64
 	obj      string
-	onParts  []SQLMaker
+	onParts  []QueryMaker
 }
 
-// Join 链接
-func Join(joinType int64, obj string) *join {
+// QueryJoin 链接
+func QueryJoin(joinType int64, obj string) *join {
 	j := join{
 		joinType: joinType,
 		obj:      obj,
@@ -101,7 +101,7 @@ func Join(joinType int64, obj string) *join {
 }
 
 // On 链接条件
-func (j *join) On(cond SQLMaker) *join {
+func (j *join) On(cond QueryMaker) *join {
 	j.onParts = append(j.onParts, cond)
 	return j
 }
@@ -112,7 +112,7 @@ func (j *join) ToSQL() ([]byte, map[string]interface{}, error) {
 	args := map[string]interface{}{}
 
 	switch j.joinType {
-	case JoinTypeInner:
+	case QueryJoinTypeInner:
 		buf.WriteString("INNER JOIN")
 	default:
 		return nil, nil, fmt.Errorf("no join type: %d", j.joinType)
@@ -147,17 +147,17 @@ func (j *join) ToSQL() ([]byte, map[string]interface{}, error) {
 type selectData struct {
 	columns      []string
 	from         string
-	whereParts   []SQLMaker
+	whereParts   []QueryMaker
 	groupBys     []string
-	orderByParts []SQLMaker
+	orderByParts []QueryMaker
 	offset       int64
 	limit        int64
 	isForUpdate  bool
-	joins        []SQLMaker
+	joins        []QueryMaker
 }
 
-// Select 创建搜索
-func Select(columns ...string) *selectData {
+// QuerySelect 创建搜索
+func QuerySelect(columns ...string) *selectData {
 	var q selectData
 	if len(columns) == 0 {
 		q.columns = []string{"*"}
@@ -174,7 +174,7 @@ func (q *selectData) From(from string) *selectData {
 }
 
 // Where 条件
-func (q *selectData) Where(cond SQLMaker) *selectData {
+func (q *selectData) Where(cond QueryMaker) *selectData {
 	q.whereParts = append(q.whereParts, cond)
 	return q
 }
@@ -186,7 +186,7 @@ func (q *selectData) GroupBy(groupBys ...string) *selectData {
 }
 
 // OrderBy 排序
-func (q *selectData) OrderBy(order ...SQLMaker) *selectData {
+func (q *selectData) OrderBy(order ...QueryMaker) *selectData {
 	q.orderByParts = append(q.orderByParts, order...)
 	return q
 }
@@ -203,8 +203,8 @@ func (q *selectData) Offset(offset int64) *selectData {
 	return q
 }
 
-// Join 链接
-func (q *selectData) Join(join SQLMaker) *selectData {
+// QueryJoin 链接
+func (q *selectData) Join(join QueryMaker) *selectData {
 	q.joins = append(q.joins, join)
 	return q
 }
