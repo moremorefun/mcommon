@@ -58,6 +58,34 @@ func (o QueryEq) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), args, nil
 }
 
+type QueryGt QueryKv
+
+func (o QueryGt) ToSQL() ([]byte, map[string]interface{}, error) {
+	k := getK(o.K)
+
+	var buf bytes.Buffer
+	args := map[string]interface{}{}
+	buf.WriteString(o.K)
+	buf.WriteString(">:")
+	buf.WriteString(k)
+	args[k] = o.V
+	return buf.Bytes(), args, nil
+}
+
+type QueryLt QueryKv
+
+func (o QueryLt) ToSQL() ([]byte, map[string]interface{}, error) {
+	k := getK(o.K)
+
+	var buf bytes.Buffer
+	args := map[string]interface{}{}
+	buf.WriteString(o.K)
+	buf.WriteString("<:")
+	buf.WriteString(k)
+	args[k] = o.V
+	return buf.Bytes(), args, nil
+}
+
 type QueryDesc string
 
 func (o QueryDesc) ToSQL() ([]byte, map[string]interface{}, error) {
