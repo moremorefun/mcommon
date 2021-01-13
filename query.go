@@ -18,32 +18,32 @@ func getK(old string) string {
 	return old
 }
 
-type kv struct {
-	k string
-	v interface{}
+type Kv struct {
+	K string
+	V interface{}
 }
 
-type kvStr struct {
-	k string
-	v string
+type KvStr struct {
+	K string
+	V string
 }
 
 type SQLMaker interface {
 	ToSQL() ([]byte, map[string]interface{}, error)
 }
 
-type Eq kv
+type Eq Kv
 
 func (o Eq) ToSQL() ([]byte, map[string]interface{}, error) {
-	k := getK(o.k)
+	k := getK(o.K)
 
 	var buf bytes.Buffer
 	args := map[string]interface{}{}
-	buf.WriteString(o.k)
-	rt := reflect.TypeOf(o.v)
+	buf.WriteString(o.K)
+	rt := reflect.TypeOf(o.V)
 	switch rt.Kind() {
 	case reflect.Slice:
-		s := reflect.ValueOf(o.v)
+		s := reflect.ValueOf(o.V)
 		if s.Len() == 0 {
 			return nil, nil, fmt.Errorf("in cond len 0")
 		}
@@ -54,7 +54,7 @@ func (o Eq) ToSQL() ([]byte, map[string]interface{}, error) {
 		buf.WriteString("=:")
 		buf.WriteString(k)
 	}
-	args[k] = o.v
+	args[k] = o.V
 	return buf.Bytes(), args, nil
 }
 
@@ -75,13 +75,13 @@ func (o Asc) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), nil, nil
 }
 
-type EqColumn kvStr
+type EqColumn KvStr
 
 func (o EqColumn) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
-	buf.WriteString(o.k)
+	buf.WriteString(o.K)
 	buf.WriteString("=")
-	buf.WriteString(o.v)
+	buf.WriteString(o.V)
 	return buf.Bytes(), nil, nil
 }
 
