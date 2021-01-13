@@ -233,8 +233,21 @@ func (q *selectData) ToSQL() ([]byte, map[string]interface{}, error) {
 	}
 	buf.WriteString("\nFROM\n    ")
 	buf.WriteString(q.from)
+	if len(q.joins) > 0 {
+		for _, join := range q.joins {
+			tQuery, tArgMap, err := join.ToSQL()
+			if err != nil {
+				return nil, nil, err
+			}
+			buf.WriteString("\n")
+			buf.Write(tQuery)
+			for tK, tV := range tArgMap {
+				args[tK] = tV
+			}
+		}
+	}
 	if len(q.whereParts) > 0 {
-		buf.WriteString("WHERE")
+		buf.WriteString("\nWHERE")
 	}
 	for i, where := range q.whereParts {
 		buf.WriteString("\n    ")
