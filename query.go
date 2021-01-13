@@ -186,8 +186,8 @@ func (q *selectData) GroupBy(groupBys ...string) *selectData {
 }
 
 // OrderBy 排序
-func (q *selectData) OrderBy(order SQLMaker) *selectData {
-	q.orderByParts = append(q.orderByParts, order)
+func (q *selectData) OrderBy(order ...SQLMaker) *selectData {
+	q.orderByParts = append(q.orderByParts, order...)
 	return q
 }
 
@@ -275,12 +275,12 @@ func (q *selectData) ToSQL() ([]byte, map[string]interface{}, error) {
 	if q.limit > 0 {
 		if q.offset > 0 {
 			buf.WriteString("\nLIMIT ")
-			buf.WriteString(strconv.FormatInt(q.offset, 0))
+			buf.WriteString(strconv.FormatInt(q.offset, 10))
 			buf.WriteString(", ")
-			buf.WriteString(strconv.FormatInt(q.limit, 0))
+			buf.WriteString(strconv.FormatInt(q.limit, 10))
 		} else {
 			buf.WriteString("\nLIMIT ")
-			buf.WriteString(strconv.FormatInt(q.limit, 0))
+			buf.WriteString(strconv.FormatInt(q.limit, 10))
 		}
 	}
 	if q.isForUpdate {
