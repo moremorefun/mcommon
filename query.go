@@ -58,6 +58,27 @@ func (o QueryEq) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), args, nil
 }
 
+type QueryEqRaw QueryKvStr
+
+func (o QueryEqRaw) ToSQL() ([]byte, map[string]interface{}, error) {
+	var buf bytes.Buffer
+	buf.WriteString(o.K)
+	buf.WriteString("=")
+	buf.WriteString(o.V)
+	return buf.Bytes(), nil, nil
+}
+
+type QueryDuplicateValue string
+
+func (o QueryDuplicateValue) ToSQL() ([]byte, map[string]interface{}, error) {
+	var buf bytes.Buffer
+	buf.WriteString(string(o))
+	buf.WriteString("=VALUES(")
+	buf.WriteString(string(o))
+	buf.WriteString(")")
+	return buf.Bytes(), nil, nil
+}
+
 type QueryGt QueryKv
 
 func (o QueryGt) ToSQL() ([]byte, map[string]interface{}, error) {
@@ -100,16 +121,6 @@ type QueryAsc string
 func (o QueryAsc) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
 	buf.WriteString(string(o))
-	return buf.Bytes(), nil, nil
-}
-
-type QueryEqColumn QueryKvStr
-
-func (o QueryEqColumn) ToSQL() ([]byte, map[string]interface{}, error) {
-	var buf bytes.Buffer
-	buf.WriteString(o.K)
-	buf.WriteString("=")
-	buf.WriteString(o.V)
 	return buf.Bytes(), nil, nil
 }
 
@@ -326,6 +337,111 @@ func (q *selectData) ToSQL() ([]byte, map[string]interface{}, error) {
 	}
 	if q.isForUpdate {
 		buf.WriteString("\nFOR UPDATE")
+	}
+	return buf.Bytes(), args, nil
+}
+
+type insertData struct {
+	isIgnore  bool
+	to        string
+	columns   []string
+	values    []interface{}
+	duplicate []QueryMaker
+}
+
+// QueryInsert 创建搜索
+func QueryInsert() *insertData {
+	var q insertData
+	return &q
+}
+
+// Into 表名
+func (q *insertData) Into(to string) *insertData {
+	q.to = to
+	return q
+}
+
+// Ignore 忽略
+func (q *insertData) Ignore() *insertData {
+	q.isIgnore = true
+	return q
+}
+
+// Columns 列
+func (q *insertData) Columns(columns ...string) *insertData {
+	q.columns = columns
+	return q
+}
+
+// Values 值
+func (q *insertData) Values(values ...interface{}) *insertData {
+	q.values = append(q.values, values)
+	return q
+}
+
+// Duplicate 替换
+func (q *insertData) Duplicate(duplicates ...QueryMaker) *insertData {
+	q.duplicate = append(q.duplicate, duplicates...)
+	return q
+}
+
+// ToSQL 生成sql
+func (q *insertData) ToSQL() ([]byte, map[string]interface{}, error) {
+	var buf bytes.Buffer
+	args := map[string]interface{}{}
+	buf.WriteString("INSERT")
+	if q.isIgnore {
+		buf.WriteString(" IGNORE")
+	}
+	buf.WriteString(" INTO ")
+	if len(q.to) == 0 {
+		return nil, nil, fmt.Errorf("no insert table name")
+	}
+	buf.WriteString(q.to)
+	if len(q.columns) == 0 {
+		return nil, nil, fmt.Errorf("no insert columns")
+	}
+	buf.WriteString(" (")
+	lastColumnIndex := len(q.columns) - 1
+	for i, column := range q.columns {
+		buf.WriteString("\n    ")
+		buf.WriteString(column)
+		if i != lastColumnIndex {
+			buf.WriteString(",")
+		}
+	}
+	buf.WriteString("\n) VALUES")
+	if len(q.values) == 0 {
+		return nil, nil, fmt.Errorf("insert values emputy")
+	}
+	lastValueIndex := len(q.values) - 1
+	for i, value := range q.values {
+		k := fmt.Sprintf("value%d", i)
+		buf.WriteString("\n(:")
+		buf.WriteString(k)
+		buf.WriteString(")")
+		if i != lastValueIndex {
+			buf.WriteString(",")
+		}
+		args[k] = value
+	}
+	if len(q.duplicate) > 0 {
+		buf.WriteString("\nON DUPLICATE KEY UPDATE")
+		lastDuplicateIndex := len(q.duplicate) - 1
+		for i, duplicate := range q.duplicate {
+			buf.WriteString("\n    ")
+			tQuery, tArgMap, err := duplicate.ToSQL()
+			if err != nil {
+				return nil, nil, err
+			}
+			buf.WriteString(string(tQuery))
+			if i != lastDuplicateIndex {
+				buf.WriteString(",")
+			}
+			for tK, tV := range tArgMap {
+				args[tK] = tV
+			}
+		}
 	}
 	return buf.Bytes(), args, nil
 }
