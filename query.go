@@ -12,6 +12,10 @@ const (
 	QueryJoinTypeInner = 1
 )
 
+type QueryMaker interface {
+	ToSQL() ([]byte, map[string]interface{}, error)
+}
+
 func getK(old string) string {
 	old = strings.ReplaceAll(old, ".", "_")
 	old = strings.ReplaceAll(old, "`", "_")
@@ -26,10 +30,6 @@ type QueryKv struct {
 type QueryKvStr struct {
 	K string
 	V string
-}
-
-type QueryMaker interface {
-	ToSQL() ([]byte, map[string]interface{}, error)
 }
 
 type QueryEq QueryKv
@@ -113,15 +113,15 @@ func (o QueryEqColumn) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), nil, nil
 }
 
-type join struct {
+type joinData struct {
 	joinType int64
 	obj      string
 	onParts  []QueryMaker
 }
 
 // QueryJoin 链接
-func QueryJoin(joinType int64, obj string) *join {
-	j := join{
+func QueryJoin(joinType int64, obj string) *joinData {
+	j := joinData{
 		joinType: joinType,
 		obj:      obj,
 	}
@@ -129,13 +129,13 @@ func QueryJoin(joinType int64, obj string) *join {
 }
 
 // On 链接条件
-func (j *join) On(cond QueryMaker) *join {
+func (j *joinData) On(cond QueryMaker) *joinData {
 	j.onParts = append(j.onParts, cond)
 	return j
 }
 
 // ToSQL 生成sql
-func (j *join) ToSQL() ([]byte, map[string]interface{}, error) {
+func (j *joinData) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
 	args := map[string]interface{}{}
 
@@ -143,16 +143,16 @@ func (j *join) ToSQL() ([]byte, map[string]interface{}, error) {
 	case QueryJoinTypeInner:
 		buf.WriteString("INNER JOIN")
 	default:
-		return nil, nil, fmt.Errorf("no join type: %d", j.joinType)
+		return nil, nil, fmt.Errorf("no joinData type: %d", j.joinType)
 	}
 	if len(j.obj) == 0 {
-		return nil, nil, fmt.Errorf("join obj emputy")
+		return nil, nil, fmt.Errorf("joinData obj emputy")
 	}
 	buf.WriteString(" ")
 	buf.WriteString(j.obj)
 	buf.WriteString(" ON (")
 	if len(j.onParts) == 0 {
-		return nil, nil, fmt.Errorf("no join on condiation")
+		return nil, nil, fmt.Errorf("no joinData on condiation")
 	}
 	for i, on := range j.onParts {
 		buf.WriteString("\n    ")
