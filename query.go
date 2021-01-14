@@ -74,6 +74,13 @@ func (o QueryEqRaw) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), nil, nil
 }
 
+// QueryColumns 查询字段
+type QueryColumns string
+
+func (o QueryColumns) ToSQL() ([]byte, map[string]interface{}, error) {
+	return []byte(o), nil, nil
+}
+
 // QueryAs k AS v
 type QueryAs QueryKvStr
 
