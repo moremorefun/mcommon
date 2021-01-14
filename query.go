@@ -206,7 +206,7 @@ func (j *joinData) ToSQL() ([]byte, map[string]interface{}, error) {
 }
 
 type selectData struct {
-	columns      []string
+	columns      []QueryMaker
 	from         string
 	whereParts   []QueryMaker
 	groupBys     []string
@@ -218,13 +218,9 @@ type selectData struct {
 }
 
 // QuerySelect 创建搜索
-func QuerySelect(columns ...string) *selectData {
+func QuerySelect(columns ...QueryMaker) *selectData {
 	var q selectData
-	if len(columns) == 0 {
-		q.columns = []string{"*"}
-	} else {
-		q.columns = columns
-	}
+	q.columns = columns
 	return &q
 }
 
@@ -281,14 +277,26 @@ func (q *selectData) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
 	args := map[string]interface{}{}
 	buf.WriteString("SELECT")
-	lastColumnIndex := len(q.columns) - 1
-	for i, column := range q.columns {
-		buf.WriteString("\n    ")
-		buf.WriteString(column)
-		if i != lastColumnIndex {
-			buf.WriteString(",")
+	if len(q.columns) == 0 {
+		buf.WriteString("\n   *")
+	} else {
+		lastColumnIndex := len(q.columns) - 1
+		for i, column := range q.columns {
+			buf.WriteString("\n    ")
+			tQuery, tArgMap, err := column.ToSQL()
+			if err != nil {
+				return nil, nil, err
+			}
+			buf.Write(tQuery)
+			for tk, tv := range tArgMap {
+				args[tk] = tv
+			}
+			if i != lastColumnIndex {
+				buf.WriteString(",")
+			}
 		}
 	}
+
 	if len(q.from) == 0 {
 		return nil, nil, fmt.Errorf("select no from")
 	}
