@@ -4,20 +4,21 @@ import "github.com/moremorefun/mcommon"
 
 func main() {
 	query, argMap, err := mcommon.
-		QueryInsert("t_user").
-		Ignore().
-		Columns("user_name", "city").
-		Values("hao", "bj").
-		Values("hao1", "bj1").
-		Duplicates(
-			mcommon.QueryEqRaw{
-				K: "count",
-				V: "count+1",
-			},
-			mcommon.QueryDuplicateValue("time"),
+		QueryUpdate("t_user").
+		Update(
 			mcommon.QueryEq{
-				K: "set",
-				V: 1,
+				K: "user_name",
+				V: "hao",
+			},
+			mcommon.QueryEqRaw{
+				K: "user_cat",
+				V: "hello",
+			},
+		).
+		Where(
+			mcommon.QueryEq{
+				K: "user_id",
+				V: "hao",
 			},
 		).
 		ToSQL()

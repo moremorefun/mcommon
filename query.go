@@ -287,19 +287,19 @@ func (q *selectData) ToSQL() ([]byte, map[string]interface{}, error) {
 	}
 	if len(q.whereParts) > 0 {
 		buf.WriteString("\nWHERE")
-	}
-	for i, where := range q.whereParts {
-		buf.WriteString("\n    ")
-		if i != 0 {
-			buf.WriteString("AND ")
-		}
-		tQuery, tArgMap, err := where.ToSQL()
-		if err != nil {
-			return nil, nil, err
-		}
-		buf.Write(tQuery)
-		for tk, tv := range tArgMap {
-			args[tk] = tv
+		for i, where := range q.whereParts {
+			buf.WriteString("\n    ")
+			if i != 0 {
+				buf.WriteString("AND ")
+			}
+			tQuery, tArgMap, err := where.ToSQL()
+			if err != nil {
+				return nil, nil, err
+			}
+			buf.Write(tQuery)
+			for tk, tv := range tArgMap {
+				args[tk] = tv
+			}
 		}
 	}
 	if len(q.groupBys) > 0 {
@@ -342,11 +342,11 @@ func (q *selectData) ToSQL() ([]byte, map[string]interface{}, error) {
 }
 
 type insertData struct {
-	isIgnore   bool
-	into       string
-	columns    []string
-	values     []interface{}
-	duplicates []QueryMaker
+	isIgnore       bool
+	into           string
+	columns        []string
+	values         []interface{}
+	duplicateParts []QueryMaker
 }
 
 // QueryInsert 创建搜索
@@ -376,7 +376,7 @@ func (q *insertData) Values(values ...interface{}) *insertData {
 
 // Duplicates 替换
 func (q *insertData) Duplicates(duplicates ...QueryMaker) *insertData {
-	q.duplicates = append(q.duplicates, duplicates...)
+	q.duplicateParts = append(q.duplicateParts, duplicates...)
 	return q
 }
 
@@ -420,10 +420,10 @@ func (q *insertData) ToSQL() ([]byte, map[string]interface{}, error) {
 		}
 		args[k] = value
 	}
-	if len(q.duplicates) > 0 {
+	if len(q.duplicateParts) > 0 {
 		buf.WriteString("\nON DUPLICATE KEY UPDATE")
-		lastDuplicateIndex := len(q.duplicates) - 1
-		for i, duplicate := range q.duplicates {
+		lastDuplicateIndex := len(q.duplicateParts) - 1
+		for i, duplicate := range q.duplicateParts {
 			buf.WriteString("\n    ")
 			tQuery, tArgMap, err := duplicate.ToSQL()
 			if err != nil {
@@ -435,6 +435,80 @@ func (q *insertData) ToSQL() ([]byte, map[string]interface{}, error) {
 			}
 			for tK, tV := range tArgMap {
 				args[tK] = tV
+			}
+		}
+	}
+	return buf.Bytes(), args, nil
+}
+
+type updateData struct {
+	table       string
+	updateParts []QueryMaker
+	whereParts  []QueryMaker
+}
+
+// QueryInsert 创建搜索
+func QueryUpdate(table string) *updateData {
+	var q updateData
+	q.table = table
+	return &q
+}
+
+// Update 更新内容
+func (q *updateData) Update(updateParts ...QueryMaker) *updateData {
+	q.updateParts = append(q.updateParts, updateParts...)
+	return q
+}
+
+// Where 条件
+func (q *updateData) Where(whereParts ...QueryMaker) *updateData {
+	q.whereParts = append(q.whereParts, whereParts...)
+	return q
+}
+
+// ToSQL 生成sql
+func (q *updateData) ToSQL() ([]byte, map[string]interface{}, error) {
+	var buf bytes.Buffer
+	args := map[string]interface{}{}
+
+	buf.WriteString("UPDATE\n    ")
+	if len(q.table) == 0 {
+		return nil, nil, fmt.Errorf("no update table")
+	}
+	buf.WriteString(q.table)
+	buf.WriteString("\nSET")
+	if len(q.updateParts) == 0 {
+		return nil, nil, fmt.Errorf("update set len=0")
+	}
+	lastUpdateIndex := len(q.updateParts) - 1
+	for i, updatePart := range q.updateParts {
+		tQuery, tArgMap, err := updatePart.ToSQL()
+		if err != nil {
+			return nil, nil, err
+		}
+		buf.WriteString("\n    ")
+		buf.Write(tQuery)
+		if i != lastUpdateIndex {
+			buf.WriteString(",")
+		}
+		for tk, tv := range tArgMap {
+			args[tk] = tv
+		}
+	}
+	if len(q.whereParts) > 0 {
+		buf.WriteString("\nWHERE")
+		for i, where := range q.whereParts {
+			buf.WriteString("\n    ")
+			if i != 0 {
+				buf.WriteString("AND ")
+			}
+			tQuery, tArgMap, err := where.ToSQL()
+			if err != nil {
+				return nil, nil, err
+			}
+			buf.Write(tQuery)
+			for tk, tv := range tArgMap {
+				args[tk] = tv
 			}
 		}
 	}
