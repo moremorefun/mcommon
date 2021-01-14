@@ -74,10 +74,10 @@ func (o QueryEqRaw) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), nil, nil
 }
 
-// QueryColumns 查询字段
-type QueryColumns string
+// QueryColumn 查询字段
+type QueryColumn string
 
-func (o QueryColumns) ToSQL() ([]byte, map[string]interface{}, error) {
+func (o QueryColumn) ToSQL() ([]byte, map[string]interface{}, error) {
 	return []byte(o), nil, nil
 }
 
