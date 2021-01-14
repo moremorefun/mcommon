@@ -12,26 +12,31 @@ const (
 	QueryJoinTypeInner = 1
 )
 
+// QueryMaker sql语句生成接口
 type QueryMaker interface {
 	ToSQL() ([]byte, map[string]interface{}, error)
 }
 
+// getK 获取key
 func getK(old string) string {
 	old = strings.ReplaceAll(old, ".", "_")
 	old = strings.ReplaceAll(old, "`", "_")
 	return old
 }
 
+// QueryKv kv结构
 type QueryKv struct {
 	K string
 	V interface{}
 }
 
+// QueryKvStr kv字符串
 type QueryKvStr struct {
 	K string
 	V string
 }
 
+// QueryEq k=:k
 type QueryEq QueryKv
 
 func (o QueryEq) ToSQL() ([]byte, map[string]interface{}, error) {
@@ -58,6 +63,7 @@ func (o QueryEq) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), args, nil
 }
 
+// QueryEqRaw k=v
 type QueryEqRaw QueryKvStr
 
 func (o QueryEqRaw) ToSQL() ([]byte, map[string]interface{}, error) {
@@ -68,6 +74,7 @@ func (o QueryEqRaw) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), nil, nil
 }
 
+// QueryDuplicateValue k=VALUES(k)
 type QueryDuplicateValue string
 
 func (o QueryDuplicateValue) ToSQL() ([]byte, map[string]interface{}, error) {
@@ -79,6 +86,7 @@ func (o QueryDuplicateValue) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), nil, nil
 }
 
+// QueryGt k>:k
 type QueryGt QueryKv
 
 func (o QueryGt) ToSQL() ([]byte, map[string]interface{}, error) {
@@ -93,6 +101,7 @@ func (o QueryGt) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), args, nil
 }
 
+// QueryLt k<:k
 type QueryLt QueryKv
 
 func (o QueryLt) ToSQL() ([]byte, map[string]interface{}, error) {
@@ -107,6 +116,7 @@ func (o QueryLt) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), args, nil
 }
 
+// QueryDesc k DESC
 type QueryDesc string
 
 func (o QueryDesc) ToSQL() ([]byte, map[string]interface{}, error) {
@@ -116,6 +126,7 @@ func (o QueryDesc) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), nil, nil
 }
 
+// QueryAsc k ASC
 type QueryAsc string
 
 func (o QueryAsc) ToSQL() ([]byte, map[string]interface{}, error) {
@@ -447,7 +458,7 @@ type updateData struct {
 	whereParts  []QueryMaker
 }
 
-// QueryInsert 创建搜索
+// QueryUpdate 创建更新
 func QueryUpdate(table string) *updateData {
 	var q updateData
 	q.table = table
@@ -495,6 +506,54 @@ func (q *updateData) ToSQL() ([]byte, map[string]interface{}, error) {
 			args[tk] = tv
 		}
 	}
+	if len(q.whereParts) > 0 {
+		buf.WriteString("\nWHERE")
+		for i, where := range q.whereParts {
+			buf.WriteString("\n    ")
+			if i != 0 {
+				buf.WriteString("AND ")
+			}
+			tQuery, tArgMap, err := where.ToSQL()
+			if err != nil {
+				return nil, nil, err
+			}
+			buf.Write(tQuery)
+			for tk, tv := range tArgMap {
+				args[tk] = tv
+			}
+		}
+	}
+	return buf.Bytes(), args, nil
+}
+
+type deleteData struct {
+	table      string
+	whereParts []QueryMaker
+}
+
+// QueryDelete 创建删除
+func QueryDelete(table string) *deleteData {
+	var q deleteData
+	q.table = table
+	return &q
+}
+
+// Where 条件
+func (q *deleteData) Where(whereParts ...QueryMaker) *deleteData {
+	q.whereParts = append(q.whereParts, whereParts...)
+	return q
+}
+
+// ToSQL 生成sql
+func (q *deleteData) ToSQL() ([]byte, map[string]interface{}, error) {
+	var buf bytes.Buffer
+	args := map[string]interface{}{}
+
+	buf.WriteString("DELETE\nFROM\n    ")
+	if len(q.table) == 0 {
+		return nil, nil, fmt.Errorf("no update table")
+	}
+	buf.WriteString(q.table)
 	if len(q.whereParts) > 0 {
 		buf.WriteString("\nWHERE")
 		for i, where := range q.whereParts {
