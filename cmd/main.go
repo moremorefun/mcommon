@@ -3,9 +3,9 @@ package main
 import "github.com/moremorefun/mcommon"
 
 func main() {
-	query, argMap, err := mcommon.QueryInsert().
+	query, argMap, err := mcommon.
+		QueryInsert("t_user").
 		Ignore().
-		Into("t_user").
 		Columns("user_name", "city").
 		Values("hao", "bj").
 		Values("hao1", "bj1").

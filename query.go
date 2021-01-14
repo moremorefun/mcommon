@@ -343,22 +343,17 @@ func (q *selectData) ToSQL() ([]byte, map[string]interface{}, error) {
 
 type insertData struct {
 	isIgnore   bool
-	to         string
+	into       string
 	columns    []string
 	values     []interface{}
 	duplicates []QueryMaker
 }
 
 // QueryInsert 创建搜索
-func QueryInsert() *insertData {
+func QueryInsert(into string) *insertData {
 	var q insertData
+	q.into = into
 	return &q
-}
-
-// Into 表名
-func (q *insertData) Into(to string) *insertData {
-	q.to = to
-	return q
 }
 
 // Ignore 忽略
@@ -394,10 +389,10 @@ func (q *insertData) ToSQL() ([]byte, map[string]interface{}, error) {
 		buf.WriteString(" IGNORE")
 	}
 	buf.WriteString(" INTO ")
-	if len(q.to) == 0 {
+	if len(q.into) == 0 {
 		return nil, nil, fmt.Errorf("no insert table name")
 	}
-	buf.WriteString(q.to)
+	buf.WriteString(q.into)
 	if len(q.columns) == 0 {
 		return nil, nil, fmt.Errorf("no insert columns")
 	}
