@@ -74,6 +74,17 @@ func (o QueryEqRaw) ToSQL() ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), nil, nil
 }
 
+// QueryAs k AS v
+type QueryAs QueryKvStr
+
+func (o QueryAs) ToSQL() ([]byte, map[string]interface{}, error) {
+	var buf bytes.Buffer
+	buf.WriteString(o.K)
+	buf.WriteString(" AS ")
+	buf.WriteString(o.V)
+	return buf.Bytes(), nil, nil
+}
+
 // QueryDuplicateValue k=VALUES(k)
 type QueryDuplicateValue string
 
