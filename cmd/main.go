@@ -9,7 +9,7 @@ func main() {
 		Columns("user_name", "city").
 		Values("hao", "bj").
 		Values("hao1", "bj1").
-		Duplicate(
+		Duplicates(
 			mcommon.QueryEqRaw{
 				K: "count",
 				V: "count+1",

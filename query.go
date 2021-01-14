@@ -342,11 +342,11 @@ func (q *selectData) ToSQL() ([]byte, map[string]interface{}, error) {
 }
 
 type insertData struct {
-	isIgnore  bool
-	to        string
-	columns   []string
-	values    []interface{}
-	duplicate []QueryMaker
+	isIgnore   bool
+	to         string
+	columns    []string
+	values     []interface{}
+	duplicates []QueryMaker
 }
 
 // QueryInsert 创建搜索
@@ -379,9 +379,9 @@ func (q *insertData) Values(values ...interface{}) *insertData {
 	return q
 }
 
-// Duplicate 替换
-func (q *insertData) Duplicate(duplicates ...QueryMaker) *insertData {
-	q.duplicate = append(q.duplicate, duplicates...)
+// Duplicates 替换
+func (q *insertData) Duplicates(duplicates ...QueryMaker) *insertData {
+	q.duplicates = append(q.duplicates, duplicates...)
 	return q
 }
 
@@ -425,10 +425,10 @@ func (q *insertData) ToSQL() ([]byte, map[string]interface{}, error) {
 		}
 		args[k] = value
 	}
-	if len(q.duplicate) > 0 {
+	if len(q.duplicates) > 0 {
 		buf.WriteString("\nON DUPLICATE KEY UPDATE")
-		lastDuplicateIndex := len(q.duplicate) - 1
-		for i, duplicate := range q.duplicate {
+		lastDuplicateIndex := len(q.duplicates) - 1
+		for i, duplicate := range q.duplicates {
 			buf.WriteString("\n    ")
 			tQuery, tArgMap, err := duplicate.ToSQL()
 			if err != nil {
