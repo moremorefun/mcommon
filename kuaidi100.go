@@ -81,6 +81,32 @@ type StKuaidi100GetResp struct {
 	IsLoop bool `json:"isLoop"`
 }
 
+type StKuaidi100CbBody struct {
+	Message    string `json:"message"`
+	ComOld     string `json:"comOld"`
+	Status     string `json:"status"`
+	LastResult struct {
+		Nu        string `json:"nu"`
+		Message   string `json:"message"`
+		Ischeck   string `json:"ischeck"`
+		Com       string `json:"com"`
+		Condition string `json:"condition"`
+		Status    string `json:"status"`
+		State     string `json:"state"`
+		Data      []struct {
+			Time     string `json:"time"`
+			AreaName string `json:"areaName,omitempty"`
+			Status   string `json:"status"`
+			AreaCode string `json:"areaCode,omitempty"`
+			Context  string `json:"context"`
+			Ftime    string `json:"ftime"`
+		} `json:"data"`
+	} `json:"lastResult"`
+	ComNew     string `json:"comNew"`
+	Billstatus string `json:"billstatus"`
+	AutoCheck  string `json:"autoCheck"`
+}
+
 // Kuaidi100Poll 订阅邮件推送
 func Kuaidi100Poll(key, company, number, tel, callbackurl string) (*StKuaidi100PollResp, error) {
 	retryCount := 0
