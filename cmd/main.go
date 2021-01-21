@@ -4,7 +4,7 @@ import "github.com/moremorefun/mcommon"
 
 func main() {
 	resp, err := mcommon.Kuaidi100Poll(
-		"shDoUsFt9582",
+		"123",
 		"shunfeng",
 		"SF1324271850710",
 		"15210004756",
