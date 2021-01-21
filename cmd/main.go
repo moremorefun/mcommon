@@ -3,27 +3,15 @@ package main
 import "github.com/moremorefun/mcommon"
 
 func main() {
-	query, argMap, err := mcommon.
-		QueryUpdate("t_user").
-		Update(
-			mcommon.QueryEq{
-				K: "user_name",
-				V: "hao",
-			},
-			mcommon.QueryEqRaw{
-				K: "user_cat",
-				V: "hello",
-			},
-		).
-		Where(
-			mcommon.QueryEq{
-				K: "user_id",
-				V: "hao",
-			},
-		).
-		ToSQL()
+	resp, err := mcommon.Kuaidi100Poll(
+		"shDoUsFt9582",
+		"shunfeng",
+		"SF1324271850710",
+		"15210004756",
+		"https://8ee552b3b302b8e11717e980be7d6d61.m.pipedream.net",
+	)
 	if err != nil {
 		mcommon.Log.Fatalf("err: %s", err.Error())
 	}
-	mcommon.Log.Debugf("query: %s\nargMap: %#v", query, argMap)
+	mcommon.Log.Debugf("%#v", resp)
 }
