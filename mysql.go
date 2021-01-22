@@ -353,6 +353,6 @@ func sqlLog(query string, args []interface{}) {
 				queryStr = strings.Replace(queryStr, "?", fmt.Sprintf(`%v`, arg), 1)
 			}
 		}
-		Log.Debugf("exec sql:\n{{%s}}\n{{%s}}", query, queryStr)
+		Log.Debugf("exec sql:\n%s;\n%#v", query, args)
 	}
 }
