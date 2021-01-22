@@ -7,10 +7,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/x509"
 	"encoding/base64"
-	"encoding/pem"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -20,55 +17,20 @@ import (
 	"github.com/parnurzeal/gorequest"
 )
 
-type StWxPayV3EncryptResp struct {
-	Data []struct {
-		EffectiveTime      time.Time `json:"effective_time"`
-		EncryptCertificate struct {
-			Algorithm      string `json:"algorithm"`
-			AssociatedData string `json:"associated_data"`
-			Ciphertext     string `json:"ciphertext"`
-			Nonce          string `json:"nonce"`
-		} `json:"encrypt_certificate"`
-		ExpireTime time.Time `json:"expire_time"`
-		SerialNo   string    `json:"serial_no"`
-	} `json:"data"`
-}
-
-func RsaSign(signContent string, privateKey string, hash crypto.Hash) (string, error) {
+// RsaSign 签名
+func RsaSign(signContent string, privateKey *rsa.PrivateKey, hash crypto.Hash) (string, error) {
 	shaNew := hash.New()
 	shaNew.Write([]byte(signContent))
 	hashed := shaNew.Sum(nil)
-	priKey, err := ParsePrivateKey(privateKey)
-	if err != nil {
-		return "", err
-	}
-	signature, err := rsa.SignPKCS1v15(rand.Reader, priKey, hash, hashed)
+	signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey, hash, hashed)
 	if err != nil {
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(signature), nil
 }
 
-func ParsePrivateKey(privateKey string) (*rsa.PrivateKey, error) {
-	// 2、解码私钥字节，生成加密对象
-	block, _ := pem.Decode([]byte(privateKey))
-	if block == nil {
-		return nil, errors.New("私钥信息错误！")
-	}
-	// 3、解析DER编码的私钥，生成私钥对象
-	priKeyInc, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
-	priKey, ok := priKeyInc.(*rsa.PrivateKey)
-	if !ok {
-		return nil, fmt.Errorf("error key type")
-	}
-	return priKey, nil
-}
-
 // WxPayV3Sign v3签名
-func WxPayV3Sign(mchid, keySerial, key string, req *gorequest.SuperAgent) (*gorequest.SuperAgent, error) {
+func WxPayV3Sign(mchid, keySerial string, key *rsa.PrivateKey, req *gorequest.SuperAgent) (*gorequest.SuperAgent, error) {
 	timestamp := time.Now().Unix()
 	nonce := GetUUIDStr()
 
