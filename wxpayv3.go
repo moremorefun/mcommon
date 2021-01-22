@@ -133,20 +133,17 @@ func WxPayV3CheckSign(header map[string][]string, body []byte, cerStr string) er
 	}
 	checkStr := timestamp + "\n" + nonce + "\n" + string(body) + "\n"
 
-	blocks, _ := pem.Decode([]byte(cerStr))
-	if blocks == nil || blocks.Type != "PUBLIC KEY" {
-		return fmt.Errorf("cer decode error")
-	}
+	block, _ := pem.Decode([]byte(cerStr))
+	var cert *x509.Certificate
+	cert, _ = x509.ParseCertificate(block.Bytes)
+	rsaPublicKey := cert.PublicKey.(*rsa.PublicKey)
+
 	oldSign, err := base64.StdEncoding.DecodeString(signature)
 	if err != nil {
 		return err
 	}
-	pub, err := x509.ParsePKIXPublicKey(blocks.Bytes)
-	if err != nil {
-		return err
-	}
 	hashed := sha256.Sum256([]byte(checkStr))
-	err = rsa.VerifyPKCS1v15(pub.(*rsa.PublicKey), crypto.SHA256, hashed[:], oldSign)
+	err = rsa.VerifyPKCS1v15(rsaPublicKey, crypto.SHA256, hashed[:], oldSign)
 	return err
 }
 
