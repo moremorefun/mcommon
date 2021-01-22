@@ -7,7 +7,10 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -109,4 +112,51 @@ func WxPayV3Decrype(key string, cipherStr, nonce, associatedData string) (string
 		return "", err
 	}
 	return string(plaintext), nil
+}
+
+// WxPayV3CheckSign v3签名验证
+func WxPayV3CheckSign(header map[string][]string, body []byte, cerStr string) error {
+	if len(cerStr) == 0 {
+		return fmt.Errorf("no cer")
+	}
+	timestamp, err := WxPayV3GetHeaderByKey(header, "Wechatpay-Timestamp")
+	if err != nil {
+		return err
+	}
+	nonce, err := WxPayV3GetHeaderByKey(header, "Wechatpay-Nonce")
+	if err != nil {
+		return err
+	}
+	signature, err := WxPayV3GetHeaderByKey(header, "Wechatpay-Signature")
+	if err != nil {
+		return err
+	}
+	checkStr := timestamp + "\n" + nonce + "\n" + string(body) + "\n"
+
+	blocks, _ := pem.Decode([]byte(cerStr))
+	if blocks == nil || blocks.Type != "PUBLIC KEY" {
+		return fmt.Errorf("cer decode error")
+	}
+	oldSign, err := base64.StdEncoding.DecodeString(signature)
+	if err != nil {
+		return err
+	}
+	pub, err := x509.ParsePKIXPublicKey(blocks.Bytes)
+	if err != nil {
+		return err
+	}
+	hashed := sha256.Sum256([]byte(checkStr))
+	err = rsa.VerifyPKCS1v15(pub.(*rsa.PublicKey), crypto.SHA256, hashed[:], oldSign)
+	return err
+}
+
+func WxPayV3GetHeaderByKey(header map[string][]string, key string) (string, error) {
+	v, ok := header[key]
+	if !ok {
+		return "", fmt.Errorf("no key %s", key)
+	}
+	if len(v) == 0 {
+		return "", fmt.Errorf("key empty %s", key)
+	}
+	return v[0], nil
 }
