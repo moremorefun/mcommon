@@ -211,19 +211,25 @@ func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, ke
 	query.WriteString("\nSET\n")
 	var updateIndex int
 	for k, v := range updateMap {
+		argK := strings.ReplaceAll(k, ".", "_")
+		argK = strings.ReplaceAll(argK, "`", "_")
+
 		query.WriteString(k)
 		query.WriteString("=:")
-		query.WriteString(k)
+		query.WriteString(argK)
 		if updateIndex == updateLastIndex {
 			query.WriteString("\n")
 		} else {
 			query.WriteString(",\n")
 		}
 		updateIndex++
-		argMap[k] = v
+		argMap[argK] = v
 	}
 	query.WriteString("WHERE\n")
 	for i, key := range keys {
+		argK := strings.ReplaceAll(key, ".", "_")
+		argK = strings.ReplaceAll(argK, "`", "_")
+
 		if i != 0 {
 			query.WriteString("AND ")
 		}
@@ -237,14 +243,14 @@ func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, ke
 				return 0, nil
 			}
 			query.WriteString(" IN (:")
-			query.WriteString(key)
+			query.WriteString(argK)
 			query.WriteString(")")
 		default:
 			query.WriteString("=:")
-			query.WriteString(key)
+			query.WriteString(argK)
 		}
 		query.WriteString("\n")
-		argMap[key] = value
+		argMap[argK] = value
 	}
 
 	count, err := DbExecuteCountNamedContent(
@@ -275,6 +281,8 @@ func DbDeleteKV(ctx context.Context, tx DbExeAble, table string, keys []string, 
 	query.WriteString(table)
 	query.WriteString("\nWHERE\n")
 	for i, key := range keys {
+		argK := strings.ReplaceAll(key, ".", "_")
+		argK = strings.ReplaceAll(argK, "`", "_")
 		if i != 0 {
 			query.WriteString("AND ")
 		}
@@ -288,14 +296,14 @@ func DbDeleteKV(ctx context.Context, tx DbExeAble, table string, keys []string, 
 				return 0, nil
 			}
 			query.WriteString(" IN (:")
-			query.WriteString(key)
+			query.WriteString(argK)
 			query.WriteString(")")
 		default:
 			query.WriteString("=:")
-			query.WriteString(key)
+			query.WriteString(argK)
 		}
 		query.WriteString("\n")
-		argMap[key] = value
+		argMap[argK] = value
 	}
 
 	count, err := DbExecuteCountNamedContent(
