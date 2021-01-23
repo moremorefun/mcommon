@@ -185,7 +185,6 @@ GotoHttpRetry:
 		}
 		return nil, errs[0]
 	}
-	Log.Debugf("body: %s", body)
 	var apiResp StKuaidi100GetResp
 	err = json.Unmarshal(body, &apiResp)
 	if err != nil {

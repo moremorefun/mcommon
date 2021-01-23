@@ -257,7 +257,6 @@ func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openI
 	if errs != nil {
 		return nil, errs[0]
 	}
-	Log.Debugf("body: %s", body)
 	var prepayResp struct {
 		PrepayID string `json:"prepay_id"`
 	}
@@ -367,7 +366,6 @@ func WxPayCheckRefundCb(mchKey string, body []byte) (*StWxRefundCb, error) {
 	if err != nil {
 		return nil, err
 	}
-	Log.Debugf("reqInfoFull: %s", reqInfoFull)
 	var bodyXML StWxRefundCb
 	err = xml.Unmarshal(reqInfoFull, &bodyXML)
 	if err != nil {

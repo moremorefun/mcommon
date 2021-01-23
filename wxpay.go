@@ -187,7 +187,6 @@ GotoHttpRetry:
 		}
 		return nil, errs[0]
 	}
-	Log.Debugf("body: %s", body)
 	respMap, err := XMLWalk(body)
 	if err != nil {
 		return nil, err
