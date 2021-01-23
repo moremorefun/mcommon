@@ -36,6 +36,28 @@ type StWxPayRawResp struct {
 	} `json:"resource"`
 }
 
+type StWxPayResp struct {
+	Mchid          string    `json:"mchid"`
+	Appid          string    `json:"appid"`
+	OutTradeNo     string    `json:"out_trade_no"`
+	TransactionID  string    `json:"transaction_id"`
+	TradeType      string    `json:"trade_type"`
+	TradeState     string    `json:"trade_state"`
+	TradeStateDesc string    `json:"trade_state_desc"`
+	BankType       string    `json:"bank_type"`
+	Attach         string    `json:"attach"`
+	SuccessTime    time.Time `json:"success_time"`
+	Payer          struct {
+		Openid string `json:"openid"`
+	} `json:"payer"`
+	Amount struct {
+		Total         int    `json:"total"`
+		PayerTotal    int    `json:"payer_total"`
+		Currency      string `json:"currency"`
+		PayerCurrency string `json:"payer_currency"`
+	} `json:"amount"`
+}
+
 // RsaSign 签名
 func RsaSign(signContent string, privateKey *rsa.PrivateKey, hash crypto.Hash) (string, error) {
 	shaNew := hash.New()
@@ -247,25 +269,25 @@ func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openI
 }
 
 // WxPayV3DecodePayResp 解析支付回调
-func WxPayV3DecodePayResp(v3Key string, body []byte) error {
+func WxPayV3DecodePayResp(v3Key string, body []byte, mchid, appid string) (*StWxPayResp, error) {
 	var rawResp StWxPayRawResp
 	err := json.Unmarshal(body, &rawResp)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if rawResp.EventType != "TRANSACTION.SUCCESS" {
-		return fmt.Errorf("error event_type: %s", rawResp.EventType)
+		return nil, fmt.Errorf("error event_type: %s", rawResp.EventType)
 	}
 	if rawResp.ResourceType != "encrypt-resource" {
-		return fmt.Errorf("error resource_type: %s", rawResp.ResourceType)
+		return nil, fmt.Errorf("error resource_type: %s", rawResp.ResourceType)
 	}
 	originalType := rawResp.Resource.OriginalType
 	if originalType != "transaction" {
-		return fmt.Errorf("error original_type: %s", originalType)
+		return nil, fmt.Errorf("error original_type: %s", originalType)
 	}
 	algorithm := rawResp.Resource.Algorithm
 	if algorithm != "AEAD_AES_256_GCM" {
-		return fmt.Errorf("error algorithm: %s", algorithm)
+		return nil, fmt.Errorf("error algorithm: %s", algorithm)
 	}
 
 	ciphertext := rawResp.Resource.Ciphertext
@@ -279,8 +301,21 @@ func WxPayV3DecodePayResp(v3Key string, body []byte) error {
 		associatedData,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	Log.Debugf("plain: %s", plain)
-	return nil
+	var finalResp StWxPayResp
+	err = json.Unmarshal([]byte(plain), &finalResp)
+	if err != nil {
+		return nil, err
+	}
+	if finalResp.Mchid != mchid {
+		return nil, fmt.Errorf("mchid error")
+	}
+	if finalResp.Appid != appid {
+		return nil, fmt.Errorf("appid error")
+	}
+	if finalResp.TradeState != "SUCCESS" {
+		return nil, fmt.Errorf("error trade_state: %s", finalResp.TradeState)
+	}
+	return &finalResp, nil
 }
