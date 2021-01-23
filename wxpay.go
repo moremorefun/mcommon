@@ -35,6 +35,23 @@ type StWeChatCbBody struct {
 	TransactionID string   `xml:"transaction_id"`
 }
 
+type StRefundRespXML struct {
+	XMLName       xml.Name `xml:"xml"`
+	Text          string   `xml:",chardata"`
+	ReturnCode    string   `xml:"return_code"`
+	ReturnMsg     string   `xml:"return_msg"`
+	Appid         string   `xml:"appid"`
+	MchID         string   `xml:"mch_id"`
+	NonceStr      string   `xml:"nonce_str"`
+	Sign          string   `xml:"sign"`
+	ResultCode    string   `xml:"result_code"`
+	TransactionID string   `xml:"transaction_id"`
+	OutTradeNo    string   `xml:"out_trade_no"`
+	OutRefundNo   string   `xml:"out_refund_no"`
+	RefundID      string   `xml:"refund_id"`
+	RefundFee     string   `xml:"refund_fee"`
+}
+
 // WechatGetPrepay 获取预支付信息
 func WechatGetPrepay(appID, mchID, mchKey, payBody, outTradeNo, clientIP, cbURL, tradeType, openID string, totalFee int64) (gin.H, error) {
 	retryCount := 0
@@ -128,4 +145,56 @@ func WechatCheckCb(mchKey string, body []byte) (*StWeChatCbBody, error) {
 		return nil, fmt.Errorf("result code error")
 	}
 	return &bodyXML, nil
+}
+
+// WechatRefund 申请退款
+func WechatRefund(appID, mchID, mchKey, transactionID, outRefundNo, cbURL string, totalFee, refundFee int64) (*StRefundRespXML, error) {
+	retryCount := 0
+	nonce := GetUUIDStr()
+	sendBody := gin.H{
+		"appid":          appID,
+		"mch_id":         mchID,
+		"nonce_str":      nonce,
+		"transaction_id": transactionID,
+		"out_refund_no":  outRefundNo,
+		"total_fee":      totalFee,
+		"refund_fee":     refundFee,
+		"notify_url":     cbURL,
+	}
+	sendBody["sign"] = WechatGetSign(mchKey, sendBody)
+	sendBodyBs, err := xml.Marshal(sendBody)
+	if err != nil {
+		return nil, err
+	}
+GotoHttpRetry:
+	_, body, errs := gorequest.New().
+		Post("https://api.mch.weixin.qq.com/secapi/pay/refund").
+		Set("Content-Type", "application/xml").
+		Send(string(sendBodyBs)).
+		EndBytes()
+	if errs != nil {
+		retryCount++
+		if retryCount < 3 {
+			goto GotoHttpRetry
+		}
+		return nil, errs[0]
+	}
+	Log.Debugf("body: %s", body)
+	respMap, err := XMLWalk(body)
+	if err != nil {
+		return nil, err
+	}
+	if !WechatCheckSign(mchKey, respMap) {
+		return nil, fmt.Errorf("sign error: %s", body)
+	}
+	var respXML StRefundRespXML
+	err = xml.Unmarshal(body, &respXML)
+	if err != nil {
+		return nil, err
+	}
+	if respXML.ResultCode != "SUCCESS" {
+		return nil, fmt.Errorf("resp result code error")
+	}
+
+	return &respXML, nil
 }
