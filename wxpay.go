@@ -37,20 +37,26 @@ type StWeChatCbBody struct {
 }
 
 type StRefundRespXML struct {
-	XMLName       xml.Name `xml:"xml"`
-	Text          string   `xml:",chardata"`
-	ReturnCode    string   `xml:"return_code"`
-	ReturnMsg     string   `xml:"return_msg"`
-	Appid         string   `xml:"appid"`
-	MchID         string   `xml:"mch_id"`
-	NonceStr      string   `xml:"nonce_str"`
-	Sign          string   `xml:"sign"`
-	ResultCode    string   `xml:"result_code"`
-	TransactionID string   `xml:"transaction_id"`
-	OutTradeNo    string   `xml:"out_trade_no"`
-	OutRefundNo   string   `xml:"out_refund_no"`
-	RefundID      string   `xml:"refund_id"`
-	RefundFee     string   `xml:"refund_fee"`
+	XMLName           xml.Name `xml:"xml"`
+	Text              string   `xml:",chardata"`
+	ReturnCode        string   `xml:"return_code"`
+	ReturnMsg         string   `xml:"return_msg"`
+	Appid             string   `xml:"appid"`
+	MchID             string   `xml:"mch_id"`
+	NonceStr          string   `xml:"nonce_str"`
+	Sign              string   `xml:"sign"`
+	ResultCode        string   `xml:"result_code"`
+	TransactionID     string   `xml:"transaction_id"`
+	OutTradeNo        string   `xml:"out_trade_no"`
+	OutRefundNo       string   `xml:"out_refund_no"`
+	RefundID          string   `xml:"refund_id"`
+	RefundChannel     string   `xml:"refund_channel"`
+	RefundFee         int64    `xml:"refund_fee"`
+	CouponRefundFee   int64    `xml:"coupon_refund_fee"`
+	TotalFee          int64    `xml:"total_fee"`
+	CashFee           int64    `xml:"cash_fee"`
+	CouponRefundCount int64    `xml:"coupon_refund_count"`
+	CashRefundFee     int64    `xml:"cash_refund_fee"`
 }
 
 // WechatGetPrepay 获取预支付信息
@@ -194,9 +200,11 @@ GotoHttpRetry:
 	if err != nil {
 		return nil, err
 	}
-	if respXML.ResultCode != "SUCCESS" {
-		return nil, fmt.Errorf("resp result code error")
+	if respXML.ReturnCode != "SUCCESS" {
+		return nil, fmt.Errorf("resp return code error %s", respXML.ReturnCode)
 	}
-
+	if respXML.ResultCode != "SUCCESS" {
+		return nil, fmt.Errorf("resp result code error %s", respXML.ResultCode)
+	}
 	return &respXML, nil
 }
