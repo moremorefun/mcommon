@@ -345,7 +345,7 @@ func WxPayV3DecodePayResp(v3Key string, body []byte, mchid, appid string) (*StWx
 
 // WxPayCheckRefundCb 验证回调
 func WxPayCheckRefundCb(mchKey string, body []byte) (*StWxRefundCb, error) {
-	mchKeyMd5 := md5.Sum([]byte(mchKey))
+	mchKeyMd5 := fmt.Sprintf("%x", md5.Sum([]byte(mchKey)))
 	bodyMap, err := XMLWalk(body)
 	if err != nil {
 		// 返回数据
@@ -363,7 +363,7 @@ func WxPayCheckRefundCb(mchKey string, body []byte) (*StWxRefundCb, error) {
 	if err != nil {
 		return nil, err
 	}
-	reqInfoFull, err := DecryptAesEcb(reqInfoBytes, mchKeyMd5[:])
+	reqInfoFull, err := DecryptAesEcb(reqInfoBytes, []byte(mchKeyMd5))
 	if err != nil {
 		return nil, err
 	}
