@@ -32,6 +32,20 @@ func RsaSign(signContent string, privateKey *rsa.PrivateKey, hash crypto.Hash) (
 	return base64.StdEncoding.EncodeToString(signature), nil
 }
 
+// WxPayV3SignStr 获取签名结果
+func WxPayV3SignStr(key *rsa.PrivateKey, cols []string) (string, error) {
+	var buf bytes.Buffer
+	for _, col := range cols {
+		buf.WriteString(col)
+		buf.WriteString("\n")
+	}
+	sign, err := RsaSign(buf.String(), key, crypto.SHA256)
+	if err != nil {
+		return "", err
+	}
+	return sign, nil
+}
+
 // WxPayV3Sign v3签名
 func WxPayV3Sign(mchid, keySerial string, key *rsa.PrivateKey, req *gorequest.SuperAgent) (*gorequest.SuperAgent, error) {
 	timestamp := time.Now().Unix()
@@ -57,23 +71,16 @@ func WxPayV3Sign(mchid, keySerial string, key *rsa.PrivateKey, req *gorequest.Su
 			return nil, err
 		}
 	}
-
-	var buf bytes.Buffer
-	buf.WriteString(req.Method)
-	buf.WriteString("\n")
-	buf.WriteString(uri.Path)
-	buf.WriteString("\n")
-	buf.WriteString(strconv.FormatInt(timestamp, 10))
-	buf.WriteString("\n")
-	buf.WriteString(nonce)
-	buf.WriteString("\n")
-	buf.Write(bodyBytes)
-	buf.WriteString("\n")
-	sign, err := RsaSign(buf.String(), key, crypto.SHA256)
+	sign, err := WxPayV3SignStr(key, []string{
+		req.Method,
+		uri.Path,
+		strconv.FormatInt(timestamp, 10),
+		nonce,
+		string(bodyBytes),
+	})
 	if err != nil {
 		return nil, err
 	}
-
 	auth := fmt.Sprintf(
 		`WECHATPAY2-SHA256-RSA2048 mchid="%s",nonce_str="%s",signature="%s",timestamp="%d",serial_no="%s"`,
 		mchid,
@@ -82,7 +89,6 @@ func WxPayV3Sign(mchid, keySerial string, key *rsa.PrivateKey, req *gorequest.Su
 		timestamp,
 		keySerial,
 	)
-
 	req = req.
 		Set("Authorization", auth).
 		Set("Accept", "application/json").
@@ -156,4 +162,40 @@ func WxPayV3GetHeaderByKey(header map[string][]string, key string) (string, erro
 		return "", fmt.Errorf("key empty %s", key)
 	}
 	return v[0], nil
+}
+
+// WxPayV3GetPrepay 获取预支付信息
+func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openID, payBody, outTradeNo, cbURL string, totalFee int64) (H, error) {
+	req := gorequest.New().
+		Post("https://api.mch.weixin.qq.com/v3/pay/transactions/native").
+		Send(
+			H{
+				"appid":        appID,
+				"mchid":        mchID,
+				"description":  payBody,
+				"out_trade_no": outTradeNo,
+				"notify_url":   cbURL,
+				"amount": H{
+					"total": totalFee,
+				},
+				"payer": H{
+					"openid": openID,
+				},
+			},
+		)
+	req, err := WxPayV3Sign(
+		mchID,
+		keySerial,
+		key,
+		req,
+	)
+	if err != nil {
+		return nil, err
+	}
+	_, body, errs := req.EndBytes()
+	if errs != nil {
+		return nil, errs[0]
+	}
+	Log.Debugf("body: %s", body)
+	return nil, nil
 }
