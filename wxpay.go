@@ -1,6 +1,7 @@
 package mcommon
 
 import (
+	"crypto/tls"
 	"encoding/xml"
 	"fmt"
 	"time"
@@ -148,7 +149,7 @@ func WechatCheckCb(mchKey string, body []byte) (*StWeChatCbBody, error) {
 }
 
 // WechatRefund 申请退款
-func WechatRefund(appID, mchID, mchKey, transactionID, outRefundNo, cbURL string, totalFee, refundFee int64) (*StRefundRespXML, error) {
+func WechatRefund(cer tls.Certificate, appID, mchID, mchKey, transactionID, outRefundNo, cbURL string, totalFee, refundFee int64) (*StRefundRespXML, error) {
 	retryCount := 0
 	nonce := GetUUIDStr()
 	sendBody := gin.H{
@@ -169,6 +170,7 @@ func WechatRefund(appID, mchID, mchKey, transactionID, outRefundNo, cbURL string
 GotoHttpRetry:
 	_, body, errs := gorequest.New().
 		Post("https://api.mch.weixin.qq.com/secapi/pay/refund").
+		TLSClientConfig(&tls.Config{Certificates: []tls.Certificate{cer}}).
 		Set("Content-Type", "application/xml").
 		Send(string(sendBodyBs)).
 		EndBytes()

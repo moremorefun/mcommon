@@ -179,7 +179,10 @@ func WxPayV3CheckSign(header map[string][]string, body []byte, cerStr string) er
 
 	block, _ := pem.Decode([]byte(cerStr))
 	var cert *x509.Certificate
-	cert, _ = x509.ParseCertificate(block.Bytes)
+	cert, err = x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return err
+	}
 	rsaPublicKey := cert.PublicKey.(*rsa.PublicKey)
 
 	oldSign, err := base64.StdEncoding.DecodeString(signature)
