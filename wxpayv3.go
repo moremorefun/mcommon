@@ -10,6 +10,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
@@ -197,5 +198,35 @@ func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openI
 		return nil, errs[0]
 	}
 	Log.Debugf("body: %s", body)
-	return nil, nil
+	var prepayResp struct {
+		PrepayID string `json:"prepay_id"`
+	}
+	err = json.Unmarshal(body, &prepayResp)
+	if len(prepayResp.PrepayID) == 0 {
+		return nil, fmt.Errorf("get prepay id err: %s", body)
+	}
+
+	objTimestamp := time.Now().Unix()
+	objNonce := GetUUIDStr()
+	objCol := fmt.Sprintf("prepay_id=%s", prepayResp.PrepayID)
+	objSign, err := WxPayV3SignStr(
+		key,
+		[]string{
+			appID,
+			strconv.FormatInt(objTimestamp, 10),
+			objNonce,
+			objCol,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	v := H{
+		"timeStamp": objTimestamp,
+		"nonceStr":  objNonce,
+		"package":   objCol,
+		"signType":  "RSA",
+		"paySign":   objSign,
+	}
+	return v, nil
 }
