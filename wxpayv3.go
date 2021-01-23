@@ -206,14 +206,14 @@ func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openI
 		return nil, fmt.Errorf("get prepay id err: %s", body)
 	}
 
-	objTimestamp := time.Now().Unix()
+	objTimestamp := strconv.FormatInt(time.Now().Unix(), 10)
 	objNonce := GetUUIDStr()
 	objCol := fmt.Sprintf("prepay_id=%s", prepayResp.PrepayID)
 	objSign, err := WxPayV3SignStr(
 		key,
 		[]string{
 			appID,
-			strconv.FormatInt(objTimestamp, 10),
+			objTimestamp,
 			objNonce,
 			objCol,
 		},
