@@ -94,3 +94,19 @@ func PKCS7UnPadding(origData []byte) []byte {
 	unpadding := int(origData[length-1])
 	return origData[:(length - unpadding)]
 }
+
+// DecryptAesEcb aes ecb 解密
+func DecryptAesEcb(data, key []byte) ([]byte, error) {
+	cip, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	decrypted := make([]byte, len(data))
+	size := cip.BlockSize()
+
+	for bs, be := 0, size; bs < len(data); bs, be = bs+size, be+size {
+		cip.Decrypt(decrypted[bs:be], data[bs:be])
+	}
+	decrypted = PKCS7UnPadding(decrypted)
+	return decrypted, nil
+}

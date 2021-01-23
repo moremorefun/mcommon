@@ -5,6 +5,7 @@ import (
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/md5"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -12,6 +13,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -56,6 +58,24 @@ type StWxPayResp struct {
 		Currency      string `json:"currency"`
 		PayerCurrency string `json:"payer_currency"`
 	} `json:"amount"`
+}
+
+type StWxRefundCb struct {
+	XMLName             xml.Name `xml:"root"`
+	Text                string   `xml:",chardata"`
+	OutRefundNo         string   `xml:"out_refund_no"`
+	OutTradeNo          string   `xml:"out_trade_no"`
+	RefundAccount       string   `xml:"refund_account"`
+	RefundFee           string   `xml:"refund_fee"`
+	RefundID            string   `xml:"refund_id"`
+	RefundRecvAccout    string   `xml:"refund_recv_accout"`
+	RefundRequestSource string   `xml:"refund_request_source"`
+	RefundStatus        string   `xml:"refund_status"`
+	SettlementRefundFee string   `xml:"settlement_refund_fee"`
+	SettlementTotalFee  string   `xml:"settlement_total_fee"`
+	SuccessTime         string   `xml:"success_time"`
+	TotalFee            string   `xml:"total_fee"`
+	TransactionID       string   `xml:"transaction_id"`
 }
 
 // RsaSign 签名
@@ -321,4 +341,37 @@ func WxPayV3DecodePayResp(v3Key string, body []byte, mchid, appid string) (*StWx
 		return nil, fmt.Errorf("error trade_state: %s", finalResp.TradeState)
 	}
 	return &finalResp, nil
+}
+
+// WxPayCheckRefundCb 验证回调
+func WxPayCheckRefundCb(mchKey string, body []byte) (*StWxRefundCb, error) {
+	mchKeyMd5 := md5.Sum([]byte(mchKey))
+	bodyMap, err := XMLWalk(body)
+	if err != nil {
+		// 返回数据
+		return nil, err
+	}
+	reqInfo, ok := bodyMap["req_info"]
+	if !ok {
+		return nil, fmt.Errorf("no key req_info %s", body)
+	}
+	reqInfoStr, ok := reqInfo.(string)
+	if !ok {
+		return nil, fmt.Errorf("error format req_info: %s", body)
+	}
+	reqInfoBytes, err := base64.StdEncoding.DecodeString(reqInfoStr)
+	if err != nil {
+		return nil, err
+	}
+	reqInfoFull, err := DecryptAesEcb(reqInfoBytes, mchKeyMd5[:])
+	if err != nil {
+		return nil, err
+	}
+	Log.Debugf("reqInfoFull: %s", reqInfoFull)
+	var bodyXML StWxRefundCb
+	err = xml.Unmarshal(reqInfoFull, &bodyXML)
+	if err != nil {
+		return nil, err
+	}
+	return &bodyXML, nil
 }
