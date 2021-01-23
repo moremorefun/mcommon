@@ -20,6 +20,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/parnurzeal/gorequest"
 )
 
@@ -226,7 +228,7 @@ func WxPayV3GetHeaderByKey(header map[string][]string, key string) (string, erro
 }
 
 // WxPayV3GetPrepay 获取预支付信息
-func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openID, payBody, outTradeNo, cbURL string, totalFee int64) (H, error) {
+func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openID, payBody, outTradeNo, cbURL string, totalFee int64) (gin.H, error) {
 	req := gorequest.New().
 		Post("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi").
 		Send(
@@ -280,7 +282,7 @@ func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openI
 	if err != nil {
 		return nil, err
 	}
-	v := H{
+	v := gin.H{
 		"timeStamp": objTimestamp,
 		"nonceStr":  objNonce,
 		"package":   objCol,
