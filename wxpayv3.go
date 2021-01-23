@@ -21,6 +21,21 @@ import (
 	"github.com/parnurzeal/gorequest"
 )
 
+type StWxPayRawResp struct {
+	ID           string    `json:"id"`
+	CreateTime   time.Time `json:"create_time"`
+	ResourceType string    `json:"resource_type"`
+	EventType    string    `json:"event_type"`
+	Summary      string    `json:"summary"`
+	Resource     struct {
+		OriginalType   string `json:"original_type"`
+		Algorithm      string `json:"algorithm"`
+		Ciphertext     string `json:"ciphertext"`
+		AssociatedData string `json:"associated_data"`
+		Nonce          string `json:"nonce"`
+	} `json:"resource"`
+}
+
 // RsaSign 签名
 func RsaSign(signContent string, privateKey *rsa.PrivateKey, hash crypto.Hash) (string, error) {
 	shaNew := hash.New()
@@ -229,4 +244,43 @@ func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openI
 		"paySign":   objSign,
 	}
 	return v, nil
+}
+
+// WxPayV3DecodePayResp 解析支付回调
+func WxPayV3DecodePayResp(v3Key string, body []byte) error {
+	var rawResp StWxPayRawResp
+	err := json.Unmarshal(body, &rawResp)
+	if err != nil {
+		return err
+	}
+	if rawResp.EventType != "TRANSACTION.SUCCESS" {
+		return fmt.Errorf("error event_type: %s", rawResp.EventType)
+	}
+	if rawResp.ResourceType != "encrypt-resource" {
+		return fmt.Errorf("error resource_type: %s", rawResp.ResourceType)
+	}
+	originalType := rawResp.Resource.OriginalType
+	if originalType != "transaction" {
+		return fmt.Errorf("error original_type: %s", originalType)
+	}
+	algorithm := rawResp.Resource.Algorithm
+	if algorithm != "AEAD_AES_256_GCM" {
+		return fmt.Errorf("error algorithm: %s", algorithm)
+	}
+
+	ciphertext := rawResp.Resource.Ciphertext
+	associatedData := rawResp.Resource.AssociatedData
+	nonce := rawResp.Resource.Nonce
+
+	plain, err := WxPayV3Decrype(
+		v3Key,
+		ciphertext,
+		nonce,
+		associatedData,
+	)
+	if err != nil {
+		return err
+	}
+	Log.Debugf("plain: %s", plain)
+	return nil
 }
