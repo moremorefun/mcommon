@@ -23,6 +23,9 @@ type DbExeAble interface {
 	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+
+	QueryxContext(ctx context.Context, query string, args ...interface{}) (*sqlx.Rows, error)
+	QueryRowxContext(ctx context.Context, query string, args ...interface{}) *sqlx.Row
 }
 
 // isShowSQL 是否显示执行的sql语句
@@ -191,6 +194,75 @@ func DbSelectNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, q
 		return err
 	}
 	return nil
+}
+
+// DbNamedRowContent 执行sql查询并返回当个元素
+func DbNamedRowContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) (map[string]interface{}, error) {
+	query, args, err := sqlx.Named(query, argMap)
+	if err != nil {
+		return nil, err
+	}
+	query, args, err = sqlx.In(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	query = tx.Rebind(query)
+	sqlLog(query, args)
+	row := tx.QueryRowxContext(
+		ctx,
+		query,
+		args,
+	)
+	dest := map[string]interface{}{}
+	err = row.MapScan(dest)
+	if err == sql.ErrNoRows {
+		// 没有元素
+		return nil, nil
+	}
+	if err != nil {
+		// 执行错误
+		return nil, err
+	}
+	return dest, nil
+}
+
+// DbNamedRowsContent 执行sql查询并返回多行
+func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) ([]map[string]interface{}, error) {
+	query, args, err := sqlx.Named(query, argMap)
+	if err != nil {
+		return nil, err
+	}
+	query, args, err = sqlx.In(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	query = tx.Rebind(query)
+	sqlLog(query, args)
+	rows, err := tx.QueryxContext(
+		ctx,
+		query,
+		args,
+	)
+	if err == sql.ErrNoRows {
+		// 没有元素
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+	var mapRows []map[string]interface{}
+	for rows.Next() {
+		row := map[string]interface{}{}
+		err := rows.MapScan(row)
+		if err != nil {
+			return nil, err
+		}
+		mapRows = append(mapRows, row)
+	}
+	return mapRows, nil
 }
 
 // DbUpdateKV 更新
