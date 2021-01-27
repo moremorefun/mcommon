@@ -211,7 +211,7 @@ func DbNamedRowContent(ctx context.Context, tx DbExeAble, query string, argMap m
 	row := tx.QueryRowxContext(
 		ctx,
 		query,
-		args,
+		args...,
 	)
 	dest := map[string]interface{}{}
 	err = row.MapScan(dest)
@@ -241,7 +241,7 @@ func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap 
 	rows, err := tx.QueryxContext(
 		ctx,
 		query,
-		args,
+		args...,
 	)
 	if err == sql.ErrNoRows {
 		// 没有元素
