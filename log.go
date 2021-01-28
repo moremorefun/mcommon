@@ -30,7 +30,6 @@ func init() {
 	// 初始化默认的日志对象
 	var err error
 	conf = zap.NewDevelopmentConfig()
-	conf.DisableStacktrace = true
 	conf.Encoding = "console"
 	ZapLog, err = conf.Build()
 	if err != nil {
@@ -44,6 +43,7 @@ func LogSetToProd() error {
 	var err error
 	conf.Development = false
 	conf.Encoding = "json"
+	conf.DisableStacktrace = true
 	conf.Level = zap.NewAtomicLevelAt(zap.WarnLevel)
 	ZapLog, err = conf.Build()
 	if err != nil {
