@@ -512,6 +512,29 @@ func ModelRowToStruct(m map[string]string, v interface{}) error {
 	return nil
 }
 
+// ModelRowToInterface 填充结构体
+func ModelRowToInterface(m map[string]string, intCols []string, floatCols []string) (map[string]interface{}, error) {
+	o := map[string]interface{}{}
+	for k, v := range m {
+		if IsStringInSlice(intCols, k) {
+			vInt, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				return nil, err
+			}
+			o[k] = vInt
+		} else if IsStringInSlice(floatCols, k) {
+			vFloat, err := strconv.ParseFloat(v, 10)
+			if err != nil {
+				return nil, err
+			}
+			o[k] = vFloat
+		} else {
+			o[k] = v
+		}
+	}
+	return o, nil
+}
+
 // ModelRowsToStruct 填充结构体
 func ModelRowsToStruct(rows []map[string]string, v interface{}) error {
 	b, err := json.Marshal(rows)
@@ -523,4 +546,17 @@ func ModelRowsToStruct(rows []map[string]string, v interface{}) error {
 		return err
 	}
 	return nil
+}
+
+// ModelRowsToInterface 填充结构体
+func ModelRowsToInterface(ms []map[string]string, intCols []string, floatCols []string) ([]map[string]interface{}, error) {
+	var os []map[string]interface{}
+	for _, m := range ms {
+		v, err := ModelRowToInterface(m, intCols, floatCols)
+		if err != nil {
+			return nil, err
+		}
+		os = append(os, v)
+	}
+	return os, nil
 }
