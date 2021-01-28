@@ -512,8 +512,8 @@ func ModelRowToStruct(m map[string]string, v interface{}) error {
 	return nil
 }
 
-// ModeRowsToStruct 填充结构体
-func ModeRowsToStruct(rows []map[string]string, v interface{}) error {
+// ModelRowsToStruct 填充结构体
+func ModelRowsToStruct(rows []map[string]string, v interface{}) error {
 	b, err := json.Marshal(rows)
 	if err != nil {
 		return err
