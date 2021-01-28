@@ -265,6 +265,78 @@ func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap 
 	return mapRows, nil
 }
 
+// DbNamedRowsInterfaceContent 执行sql查询并返回多行
+func DbNamedRowsInterfaceContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) ([]map[string]interface{}, error) {
+	query, args, err := sqlx.Named(query, argMap)
+	if err != nil {
+		return nil, err
+	}
+	query, args, err = sqlx.In(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	query = tx.Rebind(query)
+	sqlLog(query, args)
+	rows, err := tx.QueryContext(
+		ctx,
+		query,
+		args...,
+	)
+	if err == sql.ErrNoRows {
+		// 没有元素
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+	cts, err := rows.ColumnTypes()
+	if err != nil {
+		return nil, err
+	}
+	l := len(cts)
+	columns := make([]interface{}, l)
+	for i, ct := range cts {
+		dbType := ct.DatabaseTypeName()
+		goType, ok := MysqlTypeToGoMap[dbType]
+		if !ok {
+			return nil, fmt.Errorf("no db type: %s", dbType)
+		}
+		var tv reflect.Value
+		switch goType {
+		case MySqlGoTypeString:
+			tv = reflect.New(reflect.TypeOf(""))
+		case MySqlGoTypeInt64:
+			tv = reflect.New(reflect.TypeOf(int64(0)))
+		case MySqlGoTypeBytes:
+			tv = reflect.New(reflect.TypeOf([]byte{}))
+		case MySqlGoTypeFloat64:
+			tv = reflect.New(reflect.TypeOf(float64(0)))
+		case MySqlGoTypeTime:
+			tv = reflect.New(reflect.TypeOf(time.Time{}))
+		default:
+			return nil, fmt.Errorf("no go type: %d", goType)
+		}
+		columns[i] = tv.Interface()
+	}
+	var mapRows []map[string]interface{}
+	for rows.Next() {
+		err := rows.Scan(columns...)
+		if err != nil {
+			return nil, err
+		}
+		rowMap := map[string]interface{}{}
+		for i, v := range columns {
+			colName := cts[i].Name()
+			rowMap[colName] = v
+		}
+		mapRows = append(mapRows, rowMap)
+	}
+	return mapRows, nil
+}
+
 // DbUpdateKV 更新
 func DbUpdateKV(ctx context.Context, tx DbExeAble, table string, updateMap H, keys []string, values []interface{}) (int64, error) {
 	keysLen := len(keys)
