@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -247,11 +248,16 @@ func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap 
 			if v == nil {
 				rowMap[colName] = ""
 			} else {
-				vBytes, ok := v.([]byte)
-				if !ok {
-					return nil, fmt.Errorf("db scan error type: %T", v)
+				vTime, ok := v.(time.Time)
+				if ok {
+					rowMap[colName] = strconv.FormatInt(vTime.Unix(), 10)
+				} else {
+					vBytes, ok := v.([]byte)
+					if !ok {
+						return nil, fmt.Errorf("db scan error type: %T", v)
+					}
+					rowMap[colName] = string(vBytes)
 				}
-				rowMap[colName] = string(vBytes)
 			}
 		}
 		mapRows = append(mapRows, rowMap)
