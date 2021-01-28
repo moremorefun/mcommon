@@ -498,3 +498,16 @@ func GinMinTokenToUserIDRedisIgnore(tx DbExeAble, redisClient *redis.Client, get
 		c.Next()
 	}
 }
+
+// ModelStrToStruct 填充结构体
+func ModelStrToStruct(m map[string]string, v interface{}) error {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+	return nil
+}
