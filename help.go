@@ -535,8 +535,34 @@ func ModelRowToInterface(m map[string]string, intCols []string, floatCols []stri
 	return o, nil
 }
 
+// ModelRowInterfaceToStruct 填充结构体
+func ModelRowInterfaceToStruct(m map[string]interface{}, v interface{}) error {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // ModelRowsToStruct 填充结构体
 func ModelRowsToStruct(rows []map[string]string, v interface{}) error {
+	b, err := json.Marshal(rows)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// ModelRowsInterfaceToStruct 填充结构体
+func ModelRowsInterfaceToStruct(rows []map[string]interface{}, v interface{}) error {
 	b, err := json.Marshal(rows)
 	if err != nil {
 		return err
