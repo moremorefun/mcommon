@@ -1,34 +1,42 @@
 package mcommon
 
-var MysqlTypeToGoMap = map[string]string{
-	"BIT":        "string",
-	"TEXT":       "string",
-	"BLOB":       "byte",
-	"DATETIME":   "time",
-	"DOUBLE":     "float64",
-	"ENUM":       "string",
-	"FLOAT":      "float64",
-	"GEOMETRY":   "string",
-	"MEDIUMINT":  "int64",
-	"JSON":       "string",
-	"INT":        "int64",
-	"LONGTEXT":   "string",
-	"LONGBLOB":   "byte",
-	"BIGINT":     "int64",
-	"MEDIUMTEXT": "string",
-	"MEDIUMBLOB": "byte",
-	"DATE":       "time",
-	"DECIMAL":    "string",
-	"SET":        "string",
-	"SMALLINT":   "int64",
-	"BINARY":     "byte",
-	"CHAR":       "string",
-	"TIME":       "time",
-	"TIMESTAMP":  "time",
-	"TINYINT":    "int64",
-	"TINYTEXT":   "string",
-	"TINYBLOB":   "byte",
-	"VARBINARY":  "byte",
-	"VARCHAR":    "string",
-	"YEAR":       "int64",
+const (
+	MySqlGoTypeString  = 1
+	MySqlGoTypeInt64   = 2
+	MySqlGoTypeBytes   = 3
+	MySqlGoTypeFloat64 = 4
+	MySqlGoTypeTime    = 5
+)
+
+var MysqlTypeToGoMap = map[string]int64{
+	"BIT":        1,
+	"TEXT":       1,
+	"BLOB":       3,
+	"DATETIME":   5,
+	"DOUBLE":     4,
+	"ENUM":       1,
+	"FLOAT":      4,
+	"GEOMETRY":   1,
+	"MEDIUMINT":  2,
+	"JSON":       1,
+	"INT":        2,
+	"LONGTEXT":   1,
+	"LONGBLOB":   3,
+	"BIGINT":     2,
+	"MEDIUMTEXT": 1,
+	"MEDIUMBLOB": 3,
+	"DATE":       5,
+	"DECIMAL":    1,
+	"SET":        1,
+	"SMALLINT":   2,
+	"BINARY":     3,
+	"CHAR":       1,
+	"TIME":       5,
+	"TIMESTAMP":  5,
+	"TINYINT":    2,
+	"TINYTEXT":   1,
+	"TINYBLOB":   3,
+	"VARBINARY":  3,
+	"VARCHAR":    1,
+	"YEAR":       2,
 }
