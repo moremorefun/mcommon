@@ -24,6 +24,9 @@ type DbExeAble interface {
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 
+	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
+
 	QueryxContext(ctx context.Context, query string, args ...interface{}) (*sqlx.Rows, error)
 	QueryRowxContext(ctx context.Context, query string, args ...interface{}) *sqlx.Row
 }
@@ -196,38 +199,8 @@ func DbSelectNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, q
 	return nil
 }
 
-// DbNamedRowContent 执行sql查询并返回当个元素
-func DbNamedRowContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) (map[string]interface{}, error) {
-	query, args, err := sqlx.Named(query, argMap)
-	if err != nil {
-		return nil, err
-	}
-	query, args, err = sqlx.In(query, args...)
-	if err != nil {
-		return nil, err
-	}
-	query = tx.Rebind(query)
-	sqlLog(query, args)
-	row := tx.QueryRowxContext(
-		ctx,
-		query,
-		args...,
-	)
-	dest := map[string]interface{}{}
-	err = row.MapScan(dest)
-	if err == sql.ErrNoRows {
-		// 没有元素
-		return nil, nil
-	}
-	if err != nil {
-		// 执行错误
-		return nil, err
-	}
-	return dest, nil
-}
-
 // DbNamedRowsContent 执行sql查询并返回多行
-func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) ([]map[string]interface{}, error) {
+func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) ([]map[string]string, error) {
 	query, args, err := sqlx.Named(query, argMap)
 	if err != nil {
 		return nil, err
@@ -238,7 +211,7 @@ func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap 
 	}
 	query = tx.Rebind(query)
 	sqlLog(query, args)
-	rows, err := tx.QueryxContext(
+	rows, err := tx.QueryContext(
 		ctx,
 		query,
 		args...,
@@ -253,14 +226,35 @@ func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap 
 	defer func() {
 		_ = rows.Close()
 	}()
-	var mapRows []map[string]interface{}
+	cols, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+	columns := make([]interface{}, len(cols))
+	columnPointers := make([]interface{}, len(cols))
+	for i := range columns {
+		columnPointers[i] = &columns[i]
+	}
+	var mapRows []map[string]string
 	for rows.Next() {
-		row := map[string]interface{}{}
-		err := rows.MapScan(row)
+		err := rows.Scan(columnPointers...)
 		if err != nil {
 			return nil, err
 		}
-		mapRows = append(mapRows, row)
+		rowMap := map[string]string{}
+		for k, v := range columns {
+			colName := cols[k]
+			if v == nil {
+				rowMap[colName] = ""
+			} else {
+				vBytes, ok := v.([]byte)
+				if !ok {
+					return nil, fmt.Errorf("db scan error type: %T", v)
+				}
+				rowMap[colName] = string(vBytes)
+			}
+		}
+		mapRows = append(mapRows, rowMap)
 	}
 	return mapRows, nil
 }
