@@ -297,7 +297,8 @@ func DbNamedRowsInterfaceContent(ctx context.Context, tx DbExeAble, query string
 		return nil, err
 	}
 	l := len(cts)
-	columns := make([]interface{}, l)
+	columns := make([]reflect.Value, l)
+	columnsPoint := make([]interface{}, l)
 	for i, ct := range cts {
 		dbType := ct.DatabaseTypeName()
 		goType, ok := MysqlTypeToGoMap[dbType]
@@ -319,18 +320,20 @@ func DbNamedRowsInterfaceContent(ctx context.Context, tx DbExeAble, query string
 		default:
 			return nil, fmt.Errorf("no go type: %d", goType)
 		}
-		columns[i] = tv.Interface()
+		e := tv.Elem()
+		columns[i] = e
+		columnsPoint[i] = e.Addr().Interface()
 	}
 	var mapRows []map[string]interface{}
 	for rows.Next() {
-		err := rows.Scan(columns...)
+		err := rows.Scan(columnsPoint...)
 		if err != nil {
 			return nil, err
 		}
 		rowMap := map[string]interface{}{}
 		for i, v := range columns {
 			colName := cts[i].Name()
-			rowMap[colName] = v
+			rowMap[colName] = v.Interface()
 		}
 		mapRows = append(mapRows, rowMap)
 	}
