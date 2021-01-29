@@ -78,6 +78,16 @@ func IsIntInSlice(arr []int64, str int64) bool {
 	return false
 }
 
+// IsInSlice 数字是否在数组中
+func IsInSlice(arr []interface{}, iv interface{}) bool {
+	for _, v := range arr {
+		if v == iv {
+			return true
+		}
+	}
+	return false
+}
+
 // EncodeHashID 获取hash id
 func EncodeHashID(salt string, minLen, id int) (string, error) {
 	hd := hashids.NewData()
