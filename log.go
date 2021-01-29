@@ -31,6 +31,7 @@ func init() {
 	var err error
 	conf = zap.NewDevelopmentConfig()
 	conf.Encoding = "console"
+	conf.DisableStacktrace = true
 	ZapLog, err = conf.Build()
 	if err != nil {
 		log.Fatalf("build logger error: [%T] %s", err, err.Error())
