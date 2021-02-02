@@ -228,7 +228,7 @@ func WxPayV3GetHeaderByKey(header map[string][]string, key string) (string, erro
 }
 
 // WxPayV3GetPrepay 获取预支付信息
-func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openID, payBody, outTradeNo, cbURL string, totalFee int64) (gin.H, error) {
+func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openID, payBody, outTradeNo, cbURL string, totalFee int64) (gin.H, string, error) {
 	req := gorequest.New().
 		Post("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi").
 		Send(
@@ -253,23 +253,31 @@ func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openI
 		req,
 	)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	_, body, errs := req.EndBytes()
 	if errs != nil {
-		return nil, errs[0]
+		return nil, "", errs[0]
 	}
 	var prepayResp struct {
 		PrepayID string `json:"prepay_id"`
 	}
 	err = json.Unmarshal(body, &prepayResp)
 	if len(prepayResp.PrepayID) == 0 {
-		return nil, fmt.Errorf("get prepay id err: %s", body)
+		return nil, "", fmt.Errorf("get prepay id err: %s", body)
 	}
+	v, err := WxPayV3SignPrepayid(key, appID, prepayResp.PrepayID)
+	if err != nil {
+		return nil, "", err
+	}
+	return v, prepayResp.PrepayID, nil
+}
 
+// WxPayV3SignPrepayid 签名prepayid
+func WxPayV3SignPrepayid(key *rsa.PrivateKey, appID, prepayid string) (gin.H, error) {
 	objTimestamp := strconv.FormatInt(time.Now().Unix(), 10)
 	objNonce := GetUUIDStr()
-	objCol := fmt.Sprintf("prepay_id=%s", prepayResp.PrepayID)
+	objCol := fmt.Sprintf("prepay_id=%s", prepayid)
 	objSign, err := WxPayV3SignStr(
 		key,
 		[]string{
