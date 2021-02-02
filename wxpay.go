@@ -200,9 +200,11 @@ GotoHttpRetry:
 		return nil, err
 	}
 	if respXML.ReturnCode != "SUCCESS" {
+		Log.Errorf("refund err: %s", body)
 		return nil, fmt.Errorf("resp return code error %s", respXML.ReturnCode)
 	}
 	if respXML.ResultCode != "SUCCESS" {
+		Log.Errorf("refund err: %s", body)
 		return nil, fmt.Errorf("resp result code error %s", respXML.ResultCode)
 	}
 	return &respXML, nil
