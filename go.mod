@@ -3,7 +3,6 @@ module github.com/moremorefun/mcommon
 go 1.14
 
 require (
-	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/disintegration/imaging v1.6.2
 	github.com/elazarl/goproxy v0.0.0-20200809112317-0581fc3aee2d // indirect
 	github.com/gin-gonic/gin v1.6.3
@@ -14,8 +13,7 @@ require (
 	github.com/onsi/ginkgo v1.14.1 // indirect
 	github.com/onsi/gomega v1.10.2 // indirect
 	github.com/parnurzeal/gorequest v0.2.16
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/qiniu/api.v7/v7 v7.8.0
+	github.com/qiniu/go-sdk/v7 v7.9.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/schemalex/schemalex v0.1.2-0.20201120132426-1265e8bfd186
 	github.com/smartystreets/goconvey v1.6.4 // indirect
