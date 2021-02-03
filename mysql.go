@@ -61,6 +61,11 @@ func DbCreate(dataSourceName string, showSQL bool) *sqlx.DB {
 	return db
 }
 
+// DbSetShowSQL 设置是否显示sql
+func DbSetShowSQL(b bool) {
+	isShowSQL = b
+}
+
 // DbExecuteCountManyContent 返回sql语句并返回执行行数
 func DbExecuteCountManyContent(ctx context.Context, tx DbExeAble, query string, n int, args ...interface{}) (int64, error) {
 	var err error
