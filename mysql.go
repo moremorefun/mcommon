@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -206,72 +205,7 @@ func DbSelectNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, q
 }
 
 // DbNamedRowsContent 执行sql查询并返回多行
-func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) ([]map[string]string, error) {
-	query, args, err := sqlx.Named(query, argMap)
-	if err != nil {
-		return nil, err
-	}
-	query, args, err = sqlx.In(query, args...)
-	if err != nil {
-		return nil, err
-	}
-	query = tx.Rebind(query)
-	sqlLog(query, args)
-	rows, err := tx.QueryContext(
-		ctx,
-		query,
-		args...,
-	)
-	if err == sql.ErrNoRows {
-		// 没有元素
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		_ = rows.Close()
-	}()
-	cols, err := rows.Columns()
-	if err != nil {
-		return nil, err
-	}
-	columns := make([]interface{}, len(cols))
-	columnPointers := make([]interface{}, len(cols))
-	for i := range columns {
-		columnPointers[i] = &columns[i]
-	}
-	var mapRows []map[string]string
-	for rows.Next() {
-		err := rows.Scan(columnPointers...)
-		if err != nil {
-			return nil, err
-		}
-		rowMap := map[string]string{}
-		for k, v := range columns {
-			colName := cols[k]
-			if v == nil {
-				rowMap[colName] = ""
-			} else {
-				vTime, ok := v.(time.Time)
-				if ok {
-					rowMap[colName] = strconv.FormatInt(vTime.Unix(), 10)
-				} else {
-					vBytes, ok := v.([]byte)
-					if !ok {
-						return nil, fmt.Errorf("db scan error type: %T", v)
-					}
-					rowMap[colName] = string(vBytes)
-				}
-			}
-		}
-		mapRows = append(mapRows, rowMap)
-	}
-	return mapRows, nil
-}
-
-// DbNamedRowsInterfaceContent 执行sql查询并返回多行
-func DbNamedRowsInterfaceContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) ([]map[string]interface{}, error) {
+func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) ([]map[string]interface{}, error) {
 	query, args, err := sqlx.Named(query, argMap)
 	if err != nil {
 		return nil, err
