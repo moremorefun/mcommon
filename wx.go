@@ -2,12 +2,12 @@ package mcommon
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/go-redis/redis"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/gin-gonic/gin"
 	"github.com/parnurzeal/gorequest"
@@ -66,7 +66,7 @@ GotoHttpRetry:
 		return nil, errs[0]
 	}
 	var apiResp WxJsCodeResp
-	err := json.Unmarshal(body, &apiResp)
+	err := jsoniter.Unmarshal(body, &apiResp)
 	if err != nil {
 		Log.Errorf("json err: %s %s %s", err.Error(), body, code)
 		retryCount++
@@ -101,7 +101,7 @@ GotoHttpRetry:
 		return nil, errs[0]
 	}
 	var apiResp WxAppCodeResp
-	err := json.Unmarshal(body, &apiResp)
+	err := jsoniter.Unmarshal(body, &apiResp)
 	if err != nil {
 		retryCount++
 		if retryCount < 3 {
@@ -134,7 +134,7 @@ GotoHttpRetry:
 		return nil, errs[0]
 	}
 	var apiResp WxAppUserInfoResp
-	err := json.Unmarshal(body, &apiResp)
+	err := jsoniter.Unmarshal(body, &apiResp)
 	if err != nil {
 		retryCount++
 		if retryCount < 3 {
@@ -196,7 +196,7 @@ func SQLRedisGetWxToken(c context.Context, tx DbExeAble, redisClient *redis.Clie
 		return "", errs[0]
 	}
 	var apiResp apiRespSt
-	err = json.Unmarshal([]byte(body), &apiResp)
+	err = jsoniter.Unmarshal([]byte(body), &apiResp)
 	if err != nil {
 		return "", err
 	}

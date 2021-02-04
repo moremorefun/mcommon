@@ -1,5 +1,6 @@
 package mcommon
 
+// 数据库数据类型
 const (
 	MySqlGoTypeString  = 1
 	MySqlGoTypeInt64   = 2
@@ -8,6 +9,7 @@ const (
 	MySqlGoTypeTime    = 5
 )
 
+// MysqlTypeToGoMap 类型转换关系
 var MysqlTypeToGoMap = map[string]int64{
 	"BIT":        1,
 	"TEXT":       1,

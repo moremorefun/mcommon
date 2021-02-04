@@ -1,5 +1,6 @@
 package mcommon
 
+// 错误码
 const (
 	// ErrorSuccess 成功
 	ErrorSuccess = 0

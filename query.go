@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// join类型
 const (
 	QueryJoinTypeInner = 1
 )
@@ -39,6 +40,7 @@ type QueryKvStr struct {
 // QueryEq k=:k
 type QueryEq QueryKv
 
+// ToSQL 生成语句和参数
 func (o QueryEq) ToSQL() ([]byte, map[string]interface{}, error) {
 	k := getK(o.K)
 
@@ -66,6 +68,7 @@ func (o QueryEq) ToSQL() ([]byte, map[string]interface{}, error) {
 // QueryEqRaw k=v
 type QueryEqRaw QueryKvStr
 
+// ToSQL 生成语句和参数
 func (o QueryEqRaw) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
 	buf.WriteString(o.K)
@@ -77,6 +80,7 @@ func (o QueryEqRaw) ToSQL() ([]byte, map[string]interface{}, error) {
 // QueryColumn 查询字段
 type QueryColumn string
 
+// ToSQL 生成语句和参数
 func (o QueryColumn) ToSQL() ([]byte, map[string]interface{}, error) {
 	return []byte(o), nil, nil
 }
@@ -84,6 +88,7 @@ func (o QueryColumn) ToSQL() ([]byte, map[string]interface{}, error) {
 // QueryAs k AS v
 type QueryAs QueryKvStr
 
+// ToSQL 生成语句和参数
 func (o QueryAs) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
 	buf.WriteString(o.K)
@@ -95,6 +100,7 @@ func (o QueryAs) ToSQL() ([]byte, map[string]interface{}, error) {
 // QueryDuplicateValue k=VALUES(k)
 type QueryDuplicateValue string
 
+// ToSQL 生成语句和参数
 func (o QueryDuplicateValue) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
 	buf.WriteString(string(o))
@@ -107,6 +113,7 @@ func (o QueryDuplicateValue) ToSQL() ([]byte, map[string]interface{}, error) {
 // QueryGt k>:k
 type QueryGt QueryKv
 
+// ToSQL 生成语句和参数
 func (o QueryGt) ToSQL() ([]byte, map[string]interface{}, error) {
 	k := getK(o.K)
 
@@ -122,6 +129,7 @@ func (o QueryGt) ToSQL() ([]byte, map[string]interface{}, error) {
 // QueryLt k<:k
 type QueryLt QueryKv
 
+// ToSQL 生成语句和参数
 func (o QueryLt) ToSQL() ([]byte, map[string]interface{}, error) {
 	k := getK(o.K)
 
@@ -137,6 +145,7 @@ func (o QueryLt) ToSQL() ([]byte, map[string]interface{}, error) {
 // QueryDesc k DESC
 type QueryDesc string
 
+// ToSQL 生成语句和参数
 func (o QueryDesc) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
 	buf.WriteString(string(o))
@@ -147,6 +156,7 @@ func (o QueryDesc) ToSQL() ([]byte, map[string]interface{}, error) {
 // QueryAsc k ASC
 type QueryAsc string
 
+// ToSQL 生成语句和参数
 func (o QueryAsc) ToSQL() ([]byte, map[string]interface{}, error) {
 	var buf bytes.Buffer
 	buf.WriteString(string(o))

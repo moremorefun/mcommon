@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -20,20 +19,24 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 	"github.com/speps/go-hashids"
 )
 
+// H 通用map
 type H map[string]interface{}
 
+// GinResp 通用返回
 type GinResp struct {
 	ErrCode int64  `json:"error"`
 	ErrMsg  string `json:"error_msg"`
 	Data    gin.H  `json:"data,omitempty"`
 }
 
+// XMLNode xml结构
 type XMLNode struct {
 	XMLName xml.Name
 	Content string    `xml:",chardata"`
@@ -167,8 +170,8 @@ func IntArrToString(A []int64, denim string) string {
 	return buffer.String()
 }
 
-// Ip2long 转换ip
-func Ip2long(ipAddr string) (uint32, error) {
+// IP2long 转换ip
+func IP2long(ipAddr string) (uint32, error) {
 	ip := net.ParseIP(ipAddr)
 	if ip == nil {
 		return 0, errors.New("wrong ipAddr format")
@@ -349,7 +352,7 @@ func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
 	}
 	respBs := []byte("{}")
 	if data != nil {
-		respBs, err = json.Marshal(data)
+		respBs, err = jsoniter.Marshal(data)
 		if err != nil {
 			GinDoRespInternalErr(c)
 			return
@@ -511,11 +514,11 @@ func GinMinTokenToUserIDRedisIgnore(tx DbExeAble, redisClient *redis.Client, get
 
 // ModelRowToStruct 填充结构体
 func ModelRowToStruct(m map[string]string, v interface{}) error {
-	b, err := json.Marshal(m)
+	b, err := jsoniter.Marshal(m)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(b, &v)
+	err = jsoniter.Unmarshal(b, &v)
 	if err != nil {
 		return err
 	}
@@ -547,11 +550,11 @@ func ModelRowToInterface(m map[string]string, intCols []string, floatCols []stri
 
 // ModelRowInterfaceToStruct 填充结构体
 func ModelRowInterfaceToStruct(m map[string]interface{}, v interface{}) error {
-	b, err := json.Marshal(m)
+	b, err := jsoniter.Marshal(m)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(b, &v)
+	err = jsoniter.Unmarshal(b, &v)
 	if err != nil {
 		return err
 	}
@@ -560,11 +563,11 @@ func ModelRowInterfaceToStruct(m map[string]interface{}, v interface{}) error {
 
 // ModelRowsToStruct 填充结构体
 func ModelRowsToStruct(rows []map[string]string, v interface{}) error {
-	b, err := json.Marshal(rows)
+	b, err := jsoniter.Marshal(rows)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(b, &v)
+	err = jsoniter.Unmarshal(b, &v)
 	if err != nil {
 		return err
 	}
@@ -573,11 +576,11 @@ func ModelRowsToStruct(rows []map[string]string, v interface{}) error {
 
 // ModelRowsInterfaceToStruct 填充结构体
 func ModelRowsInterfaceToStruct(rows []map[string]interface{}, v interface{}) error {
-	b, err := json.Marshal(rows)
+	b, err := jsoniter.Marshal(rows)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(b, &v)
+	err = jsoniter.Unmarshal(b, &v)
 	if err != nil {
 		return err
 	}

@@ -36,6 +36,7 @@ type StWeChatCbBody struct {
 	TransactionID string   `xml:"transaction_id"`
 }
 
+// StRefundRespXML 回复内容
 type StRefundRespXML struct {
 	XMLName           xml.Name `xml:"xml"`
 	Text              string   `xml:",chardata"`

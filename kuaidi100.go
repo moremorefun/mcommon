@@ -3,30 +3,30 @@ package mcommon
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/parnurzeal/gorequest"
 )
 
+/*
+	0	在途	快件处于运输过程中
+	1	揽收	快件已由快递公司揽收
+	2	疑难	快递100无法解析的状态，或者是需要人工介入的状态， 比方说收件人电话错误。
+	3	签收	正常签收
+	4	退签	货物退回发货人并签收
+	5	派件	货物正在进行派件
+	6	退回	货物正处于返回发货人的途中
+	7	转投	货物转给其他快递公司邮寄
+	10	待清关	货物等待清关
+	11	清关中	货物正在清关流程中
+	12	已清关	货物已完成清关流程
+	13	清关异常	货物在清关过程中出现异常
+	14	拒签	收件人明确拒收
+*/
 const (
-	/*
-		0	在途	快件处于运输过程中
-		1	揽收	快件已由快递公司揽收
-		2	疑难	快递100无法解析的状态，或者是需要人工介入的状态， 比方说收件人电话错误。
-		3	签收	正常签收
-		4	退签	货物退回发货人并签收
-		5	派件	货物正在进行派件
-		6	退回	货物正处于返回发货人的途中
-		7	转投	货物转给其他快递公司邮寄
-		10	待清关	货物等待清关
-		11	清关中	货物正在清关流程中
-		12	已清关	货物已完成清关流程
-		13	清关异常	货物在清关过程中出现异常
-		14	拒签	收件人明确拒收
-	*/
 	Kuaidi100StateOnTheWay       = 0
 	Kuaidi100StateCollect        = 1
 	Kuaidi100StateDifficult      = 2
@@ -42,12 +42,14 @@ const (
 	Kuaidi100StateReject         = 14
 )
 
+// StKuaidi100PollResp 推送
 type StKuaidi100PollResp struct {
 	Result     bool   `json:"result"`
 	ReturnCode string `json:"returnCode"`
 	Message    string `json:"message"`
 }
 
+// StKuaidi100GetResp 获取
 type StKuaidi100GetResp struct {
 	Message string `json:"message"`
 	Nu      string `json:"nu"`
@@ -81,6 +83,7 @@ type StKuaidi100GetResp struct {
 	IsLoop bool `json:"isLoop"`
 }
 
+// StKuaidi100CbBody 回调
 type StKuaidi100CbBody struct {
 	Message    string `json:"message"`
 	ComOld     string `json:"comOld"`
@@ -120,7 +123,7 @@ func Kuaidi100Poll(key, company, number, tel, callbackurl string) (*StKuaidi100P
 			"phone":       tel,
 		},
 	}
-	reqBytes, err := json.Marshal(reqBody)
+	reqBytes, err := jsoniter.Marshal(reqBody)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +142,7 @@ GotoHttpRetry:
 		return nil, errs[0]
 	}
 	var apiResp StKuaidi100PollResp
-	err = json.Unmarshal(body, &apiResp)
+	err = jsoniter.Unmarshal(body, &apiResp)
 	if err != nil {
 		retryCount++
 		if retryCount < 3 {
@@ -162,7 +165,7 @@ func Kuaidi100Query(customer, key, company, number, tel string) (*StKuaidi100Get
 		"phone":    tel,
 		"resultv2": 2,
 	}
-	reqBytes, err := json.Marshal(reqBody)
+	reqBytes, err := jsoniter.Marshal(reqBody)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +189,7 @@ GotoHttpRetry:
 		return nil, errs[0]
 	}
 	var apiResp StKuaidi100GetResp
-	err = json.Unmarshal(body, &apiResp)
+	err = jsoniter.Unmarshal(body, &apiResp)
 	if err != nil {
 		retryCount++
 		if retryCount < 3 {

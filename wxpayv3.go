@@ -11,7 +11,6 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
-	"encoding/json"
 	"encoding/pem"
 	"encoding/xml"
 	"fmt"
@@ -21,10 +20,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/parnurzeal/gorequest"
 )
 
+// StWxPayRawResp 回复
 type StWxPayRawResp struct {
 	ID           string    `json:"id"`
 	CreateTime   time.Time `json:"create_time"`
@@ -40,6 +41,7 @@ type StWxPayRawResp struct {
 	} `json:"resource"`
 }
 
+// StWxPayResp 回复
 type StWxPayResp struct {
 	Mchid          string    `json:"mchid"`
 	Appid          string    `json:"appid"`
@@ -62,6 +64,7 @@ type StWxPayResp struct {
 	} `json:"amount"`
 }
 
+// StWxRefundCb 回调
 type StWxRefundCb struct {
 	XMLName             xml.Name `xml:"root"`
 	Text                string   `xml:",chardata"`
@@ -156,6 +159,7 @@ func WxPayV3Sign(mchid, keySerial string, key *rsa.PrivateKey, req *gorequest.Su
 	return req, nil
 }
 
+// WxPayV3Decrype 解密
 func WxPayV3Decrype(key string, cipherStr, nonce, associatedData string) (string, error) {
 	keyBytes := []byte(key)
 	nonceBytes := []byte(nonce)
@@ -216,6 +220,7 @@ func WxPayV3CheckSign(header map[string][]string, body []byte, cerStr string) er
 	return err
 }
 
+// WxPayV3GetHeaderByKey 获取头
 func WxPayV3GetHeaderByKey(header map[string][]string, key string) (string, error) {
 	v, ok := header[key]
 	if !ok {
@@ -262,7 +267,7 @@ func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openI
 	var prepayResp struct {
 		PrepayID string `json:"prepay_id"`
 	}
-	err = json.Unmarshal(body, &prepayResp)
+	err = jsoniter.Unmarshal(body, &prepayResp)
 	if len(prepayResp.PrepayID) == 0 {
 		return nil, "", fmt.Errorf("get prepay id err: %s", body)
 	}
@@ -303,7 +308,7 @@ func WxPayV3SignPrepayid(key *rsa.PrivateKey, appID, prepayid string) (gin.H, er
 // WxPayV3DecodePayResp 解析支付回调
 func WxPayV3DecodePayResp(v3Key string, body []byte, mchid, appid string) (*StWxPayResp, error) {
 	var rawResp StWxPayRawResp
-	err := json.Unmarshal(body, &rawResp)
+	err := jsoniter.Unmarshal(body, &rawResp)
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +341,7 @@ func WxPayV3DecodePayResp(v3Key string, body []byte, mchid, appid string) (*StWx
 		return nil, err
 	}
 	var finalResp StWxPayResp
-	err = json.Unmarshal([]byte(plain), &finalResp)
+	err = jsoniter.Unmarshal([]byte(plain), &finalResp)
 	if err != nil {
 		return nil, err
 	}
