@@ -61,7 +61,10 @@ type StRefundRespXML struct {
 }
 
 // WechatGetPrepay 获取预支付信息
-func WechatGetPrepay(appID, mchID, mchKey, payBody, outTradeNo, clientIP, cbURL, tradeType, openID string, totalFee int64) (gin.H, error) {
+func WechatGetPrepay(appID, mchID, mchKey, payBody, outTradeNo, clientIP, cbURL, tradeType, openID string, timeExpire, totalFee int64) (gin.H, error) {
+	t := time.Unix(timeExpire, 0)
+	cstSh := time.FixedZone("CST", 8*3600)
+	tStr := t.In(cstSh).Format("20060102150405")
 	retryCount := 0
 	nonce := GetUUIDStr()
 	sendBody := gin.H{
@@ -72,6 +75,7 @@ func WechatGetPrepay(appID, mchID, mchKey, payBody, outTradeNo, clientIP, cbURL,
 		"out_trade_no":     outTradeNo,
 		"total_fee":        totalFee,
 		"spbill_create_ip": clientIP,
+		"time_expire":      tStr,
 		"notify_url":       cbURL,
 		"trade_type":       tradeType,
 		"openid":           openID,
