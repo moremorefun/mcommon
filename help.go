@@ -10,6 +10,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -54,6 +55,25 @@ var GinRespInternalErr = GinResp{
 	ErrCode: ErrorInternal,
 	ErrMsg:  ErrorInternalMsg,
 }
+
+func GinBodyRepeat(r io.Reader) (io.ReadCloser, error) {
+	body, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	return nopBodyRepeat{body: body}, nil
+}
+
+type nopBodyRepeat struct {
+	body []byte
+}
+
+func (o nopBodyRepeat) Read(p []byte) (n int, err error) {
+	n = copy(p, o.body[:])
+	return n, nil
+}
+
+func (nopBodyRepeat) Close() error { return nil }
 
 // GetUUIDStr 获取唯一字符串
 func GetUUIDStr() string {
@@ -377,15 +397,14 @@ func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
 
 // GinMidRepeatReadBody 创建可重复度body
 func GinMidRepeatReadBody(c *gin.Context) {
-	c.Request.Body = ioutil.NopCloser(c.Request.Body)
-
-	//err := GinRepeatReadBody(c)
-	//if err != nil {
-	//	Log.Errorf("err: [%T] %s", err, err.Error())
-	//	GinDoRespInternalErr(c)
-	//	c.Abort()
-	//	return
-	//}
+	var err error
+	c.Request.Body, err = GinBodyRepeat(c.Request.Body)
+	if err != nil {
+		Log.Errorf("err: [%T] %s", err, err.Error())
+		GinDoRespInternalErr(c)
+		c.Abort()
+		return
+	}
 }
 
 // GinMinTokenToUserID token转换为user_id
