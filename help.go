@@ -66,10 +66,22 @@ func GinBodyRepeat(r io.Reader) (io.ReadCloser, error) {
 
 type nopBodyRepeat struct {
 	body []byte
+	i    int
 }
 
 func (o nopBodyRepeat) Read(p []byte) (n int, err error) {
-	n = copy(p, o.body[:])
+	n = len(p)
+	if n == 0 {
+		return 0, nil
+	}
+	remain := len(o.body) - o.i
+	if remain < n {
+		n = copy(p, o.body[o.i:])
+		o.i = 0
+		return n, io.EOF
+	}
+	n = copy(p, o.body[o.i:])
+	o.i += n
 	return n, nil
 }
 
