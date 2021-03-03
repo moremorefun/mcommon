@@ -61,7 +61,7 @@ func GinBodyRepeat(r io.Reader) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	return nopBodyRepeat{body: body}, nil
+	return &nopBodyRepeat{body: body}, nil
 }
 
 type nopBodyRepeat struct {
@@ -69,7 +69,7 @@ type nopBodyRepeat struct {
 	i    int
 }
 
-func (o nopBodyRepeat) Read(p []byte) (n int, err error) {
+func (o *nopBodyRepeat) Read(p []byte) (n int, err error) {
 	n = len(p)
 	if n == 0 {
 		return 0, nil
@@ -85,7 +85,7 @@ func (o nopBodyRepeat) Read(p []byte) (n int, err error) {
 	return n, nil
 }
 
-func (nopBodyRepeat) Close() error { return nil }
+func (*nopBodyRepeat) Close() error { return nil }
 
 // GetUUIDStr 获取唯一字符串
 func GetUUIDStr() string {
