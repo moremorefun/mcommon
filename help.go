@@ -377,13 +377,15 @@ func GinDoEncRespSuccess(c *gin.Context, key string, isAll bool, data gin.H) {
 
 // GinMidRepeatReadBody 创建可重复度body
 func GinMidRepeatReadBody(c *gin.Context) {
-	err := GinRepeatReadBody(c)
-	if err != nil {
-		Log.Errorf("err: [%T] %s", err, err.Error())
-		GinDoRespInternalErr(c)
-		c.Abort()
-		return
-	}
+	c.Request.Body = ioutil.NopCloser(c.Request.Body)
+
+	//err := GinRepeatReadBody(c)
+	//if err != nil {
+	//	Log.Errorf("err: [%T] %s", err, err.Error())
+	//	GinDoRespInternalErr(c)
+	//	c.Abort()
+	//	return
+	//}
 }
 
 // GinMinTokenToUserID token转换为user_id
