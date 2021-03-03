@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
+
 	// 导入mysql
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -205,7 +207,7 @@ func DbSelectNamedContent(ctx context.Context, tx DbExeAble, dest interface{}, q
 }
 
 // DbNamedRowsContent 执行sql查询并返回多行
-func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) ([]map[string]interface{}, error) {
+func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap map[string]interface{}) ([]gin.H, error) {
 	query, args, err := sqlx.Named(query, argMap)
 	if err != nil {
 		return nil, err
@@ -263,7 +265,7 @@ func DbNamedRowsContent(ctx context.Context, tx DbExeAble, query string, argMap 
 		columns[i] = e
 		columnsPoint[i] = e.Addr().Interface()
 	}
-	var mapRows []map[string]interface{}
+	var mapRows []gin.H
 	for rows.Next() {
 		err := rows.Scan(columnsPoint...)
 		if err != nil {
