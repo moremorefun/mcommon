@@ -261,23 +261,23 @@ func TimeGetMillisecond() int64 {
 
 // GinRepeatReadBody 创建可重复度body
 func GinRepeatReadBody(c *gin.Context) error {
-	var err error
-	var body []byte
-	if cb, ok := c.Get(gin.BodyBytesKey); ok {
-		if cbb, ok := cb.([]byte); ok {
-			body = cbb
-		}
-	}
-	if body == nil {
-		body, err = ioutil.ReadAll(c.Request.Body)
-		if err != nil {
-			Log.Errorf("err: [%T] %s", err, err.Error())
-			c.Abort()
-			return err
-		}
-		c.Set(gin.BodyBytesKey, body)
-	}
-	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	//var err error
+	//var body []byte
+	//if cb, ok := c.Get(gin.BodyBytesKey); ok {
+	//	if cbb, ok := cb.([]byte); ok {
+	//		body = cbb
+	//	}
+	//}
+	//if body == nil {
+	//	body, err = ioutil.ReadAll(c.Request.Body)
+	//	if err != nil {
+	//		Log.Errorf("err: [%T] %s", err, err.Error())
+	//		c.Abort()
+	//		return err
+	//	}
+	//	c.Set(gin.BodyBytesKey, body)
+	//}
+	//c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	return nil
 }
 
