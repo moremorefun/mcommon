@@ -279,46 +279,10 @@ func TimeGetMillisecond() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-// GinRepeatReadBody 创建可重复度body
-func GinRepeatReadBody(c *gin.Context) error {
-	//var err error
-	//var body []byte
-	//if cb, ok := c.Get(gin.BodyBytesKey); ok {
-	//	if cbb, ok := cb.([]byte); ok {
-	//		body = cbb
-	//	}
-	//}
-	//if body == nil {
-	//	body, err = ioutil.ReadAll(c.Request.Body)
-	//	if err != nil {
-	//		Log.Errorf("err: [%T] %s", err, err.Error())
-	//		c.Abort()
-	//		return err
-	//	}
-	//	c.Set(gin.BodyBytesKey, body)
-	//}
-	//c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-	return nil
-}
-
-// GinShouldBindRepeat 可重复绑定参数
-func GinShouldBindRepeat(c *gin.Context, obj interface{}) error {
-	err := GinRepeatReadBody(c)
-	if err != nil {
-		return err
-	}
-	return c.ShouldBind(obj)
-}
-
 // GinFillBindError 检测gin输入绑定错误
 func GinFillBindError(c *gin.Context, err error) {
-	repeatErr := GinRepeatReadBody(c)
-	if repeatErr != nil {
-		Log.Errorf("err: [%T] %s", repeatErr, repeatErr.Error())
-	} else {
-		body, _ := ioutil.ReadAll(c.Request.Body)
-		Log.Warnf("bind error body is: %s", body)
-	}
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	Log.Warnf("bind error body is: %s", body)
 	GinDoRespErr(
 		c,
 		ErrorBind,
@@ -410,26 +374,13 @@ func GinMidRepeatReadBody(c *gin.Context) {
 // GinMinTokenToUserID token转换为user_id
 func GinMinTokenToUserID(tx DbExeAble, getUserIDByToken func(ctx context.Context, tx DbExeAble, token string) (int64, error)) func(*gin.Context) {
 	return func(c *gin.Context) {
-		err := GinRepeatReadBody(c)
-		if err != nil {
-			GinDoRespInternalErr(c)
-			c.Abort()
-			return
-		}
 		var req struct {
 			Token string `json:"token" binding:"required"`
 		}
-		err = c.ShouldBind(&req)
+		err := c.ShouldBind(&req)
 		if err != nil {
 			Log.Errorf("err: [%T] %s", err, err.Error())
 			GinFillBindError(c, err)
-			c.Abort()
-			return
-		}
-		bodyErr := GinRepeatReadBody(c)
-		if bodyErr != nil {
-			Log.Errorf("err: [%T] %s", bodyErr, bodyErr.Error())
-			GinDoRespInternalErr(c)
 			c.Abort()
 			return
 		}
@@ -453,26 +404,13 @@ func GinMinTokenToUserID(tx DbExeAble, getUserIDByToken func(ctx context.Context
 // GinMinTokenToUserIDRedis token转换为user_id
 func GinMinTokenToUserIDRedis(tx DbExeAble, redisClient *redis.Client, getUserIDByToken func(ctx context.Context, tx DbExeAble, redisClient *redis.Client, token string) (int64, error)) func(*gin.Context) {
 	return func(c *gin.Context) {
-		err := GinRepeatReadBody(c)
-		if err != nil {
-			GinDoRespInternalErr(c)
-			c.Abort()
-			return
-		}
 		var req struct {
 			Token string `json:"token" binding:"required"`
 		}
-		err = c.ShouldBind(&req)
+		err := c.ShouldBind(&req)
 		if err != nil {
 			Log.Errorf("err: [%T] %s", err, err.Error())
 			GinFillBindError(c, err)
-			c.Abort()
-			return
-		}
-		bodyErr := GinRepeatReadBody(c)
-		if bodyErr != nil {
-			Log.Errorf("err: [%T] %s", bodyErr, bodyErr.Error())
-			GinDoRespInternalErr(c)
 			c.Abort()
 			return
 		}
@@ -496,25 +434,12 @@ func GinMinTokenToUserIDRedis(tx DbExeAble, redisClient *redis.Client, getUserID
 // GinMinTokenToUserIDRedisIgnore token转换为user_id
 func GinMinTokenToUserIDRedisIgnore(tx DbExeAble, redisClient *redis.Client, getUserIDByToken func(ctx context.Context, tx DbExeAble, redisClient *redis.Client, token string) (int64, error)) func(*gin.Context) {
 	return func(c *gin.Context) {
-		err := GinRepeatReadBody(c)
-		if err != nil {
-			GinDoRespInternalErr(c)
-			c.Abort()
-			return
-		}
 		var req struct {
 			Token string `json:"token" binding:"omitempty"`
 		}
-		err = c.ShouldBind(&req)
+		err := c.ShouldBind(&req)
 		if err != nil {
 			c.Next()
-			return
-		}
-		bodyErr := GinRepeatReadBody(c)
-		if bodyErr != nil {
-			Log.Errorf("err: [%T] %s", bodyErr, bodyErr.Error())
-			GinDoRespInternalErr(c)
-			c.Abort()
 			return
 		}
 		userID, err := getUserIDByToken(c, tx, redisClient, req.Token)
