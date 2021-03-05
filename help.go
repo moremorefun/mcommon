@@ -472,12 +472,18 @@ func GinMinTokenToUserIDRedisIgnore(tx DbExeAble, redisClient *redis.Client, get
 
 func GinCors() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		origin := c.Request.Header.Get("Origin")
+		if len(origin) == 0 {
+			// request is not a CORS request
+			return
+		}
+		reqHeader := c.Request.Header.Get("Access-Control-Request-Headers")
 		method := c.Request.Method
 		c.Header("Access-Control-Allow-Methods", "*")
-		c.Header("Access-Control-Max-Age", "3600")
+		c.Header("Access-Control-Max-Age", "43200")
 		c.Header("Access-Control-Allow-Credentials", "true")
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Headers", "*")
+		c.Header("Access-Control-Allow-Origin", origin)
+		c.Header("Access-Control-Allow-Headers", reqHeader)
 
 		if method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusNoContent)
