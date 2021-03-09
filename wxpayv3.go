@@ -290,7 +290,7 @@ func WxPayV3GetHeaderByKey(header map[string][]string, key string) (string, erro
 }
 
 // WxPayV3GetPrepay 获取预支付信息
-func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openID, payBody, outTradeNo, cbURL string, totalFee int64) (gin.H, string, error) {
+func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openID, payBody, outTradeNo, cbURL string, totalFee int64, expireAt time.Time) (gin.H, string, error) {
 	req := gorequest.New().
 		Post("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi").
 		Send(
@@ -299,6 +299,7 @@ func WxPayV3GetPrepay(keySerial string, key *rsa.PrivateKey, appID, mchID, openI
 				"mchid":        mchID,
 				"description":  payBody,
 				"out_trade_no": outTradeNo,
+				"time_expire":  expireAt.Format(time.RFC3339),
 				"notify_url":   cbURL,
 				"amount": H{
 					"total": totalFee,
