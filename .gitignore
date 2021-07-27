@@ -1,7 +1,6 @@
 .DS_Store
 .idea
 vendor
-go.sum
 
 __debug_bin
 
