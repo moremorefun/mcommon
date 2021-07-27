@@ -252,10 +252,7 @@ func WechatCheckSign(appSecret string, paramsMap gin.H) bool {
 		}
 	}
 	getSign := WechatGetSign(appSecret, noSignMap)
-	if getSign != paramsMap["sign"] {
-		return false
-	}
-	return true
+	return getSign == paramsMap["sign"]
 }
 
 func walk(nodes []XMLNode, f func(XMLNode) bool) {
@@ -516,7 +513,7 @@ func ModelRowToInterface(m map[string]string, intCols []string, floatCols []stri
 			}
 			o[k] = vInt
 		} else if IsStringInSlice(floatCols, k) {
-			vFloat, err := strconv.ParseFloat(v, 10)
+			vFloat, err := strconv.ParseFloat(v, 64)
 			if err != nil {
 				return nil, err
 			}
