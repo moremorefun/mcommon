@@ -23,6 +23,6 @@ require (
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/tencentcloud/tencentcloud-sdk-go v3.0.233+incompatible
 	go.uber.org/zap v1.18.1
-	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
+	golang.org/x/image v0.5.0
 	moul.io/http2curl v1.0.0 // indirect
 )
