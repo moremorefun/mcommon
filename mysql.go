@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
-	"runtime"
 	"strings"
 	"time"
 
@@ -49,10 +48,10 @@ func DbCreate(dataSourceName string, showSQL bool) *sqlx.DB {
 		return nil
 	}
 
-	count := runtime.NumCPU()*20 + 1
-	db.SetMaxOpenConns(count)
-	db.SetMaxIdleConns(count)
-	db.SetConnMaxLifetime(1 * time.Hour)
+	//count := runtime.NumCPU()*20 + 1
+	//db.SetMaxOpenConns(count)
+	//db.SetMaxIdleConns(count)
+	//db.SetConnMaxLifetime(1 * time.Hour)
 
 	err = db.Ping()
 	if err != nil {
